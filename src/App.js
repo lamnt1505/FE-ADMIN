@@ -22,26 +22,24 @@ function App() {
       <Routes>
         {/* Mặc định "/" => /login */}
         <Route path="/" element={<Navigate to="/login" />} />
-
         {/* Trang login KHÔNG có layout */}
         <Route path="/login" element={<LoginPage />} />
-
         <Route element={<ProtectedRoute />}>
-  <Route element={<Layout />}>
-    <Route path="/dashboard" element={<Dashboard />} />
-    <Route path="/products" element={<Products />} />
-    <Route path="/add-product" element={<AddProduct />} />
-    <Route path="/categories" element={<Categories />} />
-    <Route path="/trademarks" element={<Trademarks />} />
-    <Route path="/statisticals" element={<Statisticals />} />
-    <Route path="/orders" element={<OrderSummaryPages />} />
-    <Route path="/votes" element={<ProductVotePage />} />
-    <Route path="/discounts" element={<CreateDiscountPage />} />
-    <Route path="/accounts" element={<AccountList />} />
-    <Route path="/storages" element={<StorageList />} />
-    <Route path="/add-storage" element={<StorageForm />} />
-  </Route>
-</Route>
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/add-product" element={<AddProduct />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/trademarks" element={<Trademarks />} />
+            <Route path="/statisticals" element={<Statisticals />} />
+            <Route path="/orders" element={<OrderSummaryPages />} />
+            <Route path="/votes" element={<ProductVotePage />} />
+            <Route path="/discounts" element={<CreateDiscountPage />} />
+            <Route path="/accounts" element={<AccountList />} />
+            <Route path="/storages" element={<StorageList />} />
+            <Route path="/add-storage" element={<StorageForm />} />
+          </Route>
+        </Route>
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

@@ -21,12 +21,20 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useLocation } from "react-router-dom";
+import { Pagination } from "@mui/material";
 
 const Categories = () => {
+  const location = useLocation();
+  const msg = location.state?.msg || "";
   const fileInputRef = useRef(null);
   const [categories, setCategories] = useState([]);
   const [openAdd, setOpenAdd] = useState(false);
   const [newName, setNewName] = useState("");
+
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(5);
+  const [totalPages, setTotalPages] = useState(0);
 
   const [openDelete, setOpenDelete] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
@@ -35,23 +43,44 @@ const Categories = () => {
   const [updateId, setUpdateId] = useState(null);
   const [updateName, setUpdateName] = useState("");
 
+useEffect(() => {
+  if (location.state?.msg) {
+    toast.error(location.state.msg, {
+      position: "top-right",
+      autoClose: 3000,
+    });
+    
+    window.history.replaceState({}, document.title);
+  }
+}, [location.state]);
+
+
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [page, size]);
 
   const fetchCategories = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/category/Listgetall"
+        "http://localhost:8080/api/v1/category/paginated",
+        {
+          params: {
+            page,
+            size,
+            sort: ["categoryID", "asc"],
+          },
+        }
       );
-      setCategories(res.data);
-      toast.success("Tải danh sách loại sản phẩm thành công!");
+
+      setCategories(res.data.content);
+      setTotalPages(res.data.totalPages);
     } catch (err) {
       toast.error("Không thể tải danh sách loại sản phẩm!");
     }
   };
 
   const handleOpenAdd = () => setOpenAdd(true);
+
   const handleCloseAdd = () => {
     setOpenAdd(false);
     setNewName("");
@@ -65,11 +94,13 @@ const Categories = () => {
       handleCloseAdd();
       fetchCategories();
     } catch (err) {
-      console.error("Lỗi khi thêm category:", err);
-      toast.error("Có lỗi xảy ra khi thêm loại sản phẩm!");
+      if (err.response && err.response.status === 409) {
+        toast.error(err.response.data.error || "Tên Loại sản phẩm đã tồn tại!");
+      } else {
+        toast.error("Có lỗi xảy ra khi thêm danh mục!");
+      }
     }
   };
-
   const handleOpenUpdate = (cat) => {
     setUpdateId(cat.id);
     setUpdateName(cat.name);
@@ -125,7 +156,7 @@ const Categories = () => {
   const handleButtonClick = () => {
     if (fileInputRef.current) fileInputRef.current.click();
   };
-  
+
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -161,6 +192,7 @@ const Categories = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      toast.success("Tải file mẫu thành công!");
     } catch (error) {
       console.error("Lỗi khi tải file:", error);
       toast.error("Không thể tải file mẫu!");
@@ -168,9 +200,9 @@ const Categories = () => {
   };
 
   return (
-    <Box sx={{ p: 2, m: 0, width: "100%" }}>
+    <Box sx={{ px: 2, pt: 2, pb: 1, width: "100%" }}>
       <Typography variant="h5" gutterBottom sx={{ px: 2, pt: 2, pb: 1 }}>
-        Danh sách loại sản phẩm
+        DANH SÁCH LOẠI SẢN PHẨM
       </Typography>
 
       <Box sx={{ display: "flex", gap: 3, mb: 2 }}>
@@ -180,7 +212,7 @@ const Categories = () => {
           color="primary"
           onClick={handleOpenAdd}
         >
-          Thêm Loại Sản Phẩm
+          THÊM LOẠI SẢN PHẨM
         </Button>
         <Button
           variant="contained"
@@ -188,7 +220,7 @@ const Categories = () => {
           color="info"
           onClick={handleDownloadTemplate}
         >
-          Tải File Mẫu
+          TẢI FILE MẪU
         </Button>
         <Button
           variant="contained"
@@ -196,7 +228,7 @@ const Categories = () => {
           color="success"
           onClick={handleButtonClick}
         >
-          Tải Lên File Excel
+          TẢI LÊN FILE EXCEL
         </Button>
         <input
           type="file"
@@ -218,10 +250,10 @@ const Categories = () => {
                 ID
               </TableCell>
               <TableCell sx={{ color: "white", fontSize: "1.2rem" }}>
-                Tên Loại
+                TÊN LOẠI
               </TableCell>
               <TableCell sx={{ color: "white", fontSize: "1.2rem" }}>
-                Chức Năng
+                CHỨC NĂNG
               </TableCell>
             </TableRow>
           </TableHead>
@@ -238,7 +270,7 @@ const Categories = () => {
                       size="small"
                       onClick={() => handleOpenUpdate(cat)}
                     >
-                      Cập nhật
+                      CẬP NHẬT
                     </Button>
                     <Button
                       variant="contained"
@@ -246,7 +278,7 @@ const Categories = () => {
                       size="small"
                       onClick={() => handleOpenDelete(cat.id)}
                     >
-                      Xóa
+                      XÓA
                     </Button>
                   </Box>
                 </TableCell>
@@ -255,32 +287,53 @@ const Categories = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+        <Button
+          variant="outlined"
+          disabled={page === 0}
+          onClick={() => setPage(page - 1)}
+          sx={{ mr: 1 }}
+        >
+          Trước
+        </Button>
+        <Typography sx={{ mx: 2, alignSelf: "center" }}>
+          Trang {page + 1} / {totalPages}
+        </Typography>
+        <Button
+          variant="outlined"
+          disabled={page + 1 >= totalPages}
+          onClick={() => setPage(page + 1)}
+          sx={{ ml: 1 }}
+        >
+          Sau
+        </Button>
+      </Box>
       <Dialog open={openAdd} onClose={handleCloseAdd}>
-        <DialogTitle>Thêm loại sản phẩm</DialogTitle>
+        <DialogTitle>THÊM LOẠI SẢN PHẨM</DialogTitle>
         <DialogContent>
           <TextField
-            label="Tên loại"
+            label="TÊN LOẠI"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             fullWidth
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseAdd}>Hủy</Button>
+          <Button onClick={handleCloseAdd}>HỦY</Button>
           <Button
             onClick={handleConfirmAdd}
             variant="contained"
             color="primary"
           >
-            Thêm
+            THÊM MỚI
           </Button>
         </DialogActions>
       </Dialog>
       <Dialog open={openUpdate} onClose={handleCloseUpdate}>
-        <DialogTitle>Cập nhật loại sản phẩm</DialogTitle>
+        <DialogTitle>CẬP NHẬT LOẠI SẢN PHẨM</DialogTitle>
         <DialogContent>
           <TextField
-            label="Tên loại"
+            label="TÊN LOẠI"
             value={updateName}
             onChange={(e) => setUpdateName(e.target.value)}
             fullWidth
@@ -293,24 +346,24 @@ const Categories = () => {
             variant="contained"
             color="primary"
           >
-            Lưu
+            LƯU
           </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={openDelete} onClose={handleCloseDelete}>
-        <DialogTitle>Xác nhận xóa</DialogTitle>
+        <DialogTitle>XÁC NHẬN XÓA</DialogTitle>
         <DialogContent>
-          Bạn có chắc chắn muốn xóa loại sản phẩm này không?
+          BẠN CÓ CHẮC MUỐN XÓA LOẠI SẢN PHẨM NÀY KHÔNG?
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDelete}>Hủy</Button>
+          <Button onClick={handleCloseDelete}>HỦY</Button>
           <Button
             onClick={handleConfirmDelete}
             variant="contained"
             color="error"
           >
-            Xóa
+            XÓA
           </Button>
         </DialogActions>
       </Dialog>

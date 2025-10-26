@@ -25,7 +25,6 @@ const ProductVotePage = () => {
     try {
       const res = await axios.get("http://localhost:8080/api/v1/votes/List--get--all");
       setVotes(res.data);
-      toast.success("Load dữ liệu thành công");
     } catch (err) {
       console.error("Lỗi khi lấy danh sách đánh giá:", err);
       toast.error("Không thể load dữ liệu. Vui lòng thử lại!");

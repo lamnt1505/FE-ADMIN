@@ -11,8 +11,6 @@ import {
   TableRow,
   Paper,
   Button,
-} from "@mui/material";
-import {
   Dialog,
   DialogTitle,
   DialogContent,
@@ -31,10 +29,85 @@ const OrderSummaryPage = () => {
   const [status, setStatus] = useState("");
   const [orderDetails, setOrderDetails] = useState([]);
   const [openDetailDialog, setOpenDetailDialog] = useState(false);
+  const [openAddressDialog, setOpenAddressDialog] = useState(false);
+  const [addressInfo, setAddressInfo] = useState(null);
 
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      console.log("⏳ Kiểm tra và cập nhật trạng thái đơn hàng tự động...");
+      try {
+        const res = await axios.get(
+          "http://localhost:8080/dossier-statistic/summary"
+        );
+        const currentOrders = res.data;
+
+        currentOrders.forEach(async (order) => {
+          if (order.status === "Hoàn thành" || order.status === "Đã huỷ") {
+            console.log(`⏭️ Bỏ qua đơn #${order.orderId} (${order.status})`);
+            return;
+          }
+
+          let nextStatus = "";
+
+          switch (order.status) {
+            case "Chờ duyệt":
+              nextStatus = "Đang xử lý";
+              break;
+            case "Đang xử lý":
+              nextStatus = "Đang giao hàng";
+              break;
+            case "Đang giao hàng":
+              nextStatus = "Hoàn thành";
+              break;
+            default:
+              nextStatus = order.status;
+          }
+
+          if (nextStatus === order.status) return;
+
+          try {
+            const updateRes = await axios.post(
+              "http://localhost:8080/dossier-statistic/--update-status",
+              null,
+              { params: { orderid: order.orderId, status: nextStatus } }
+            );
+
+            const result = updateRes.data;
+
+            if (result === "SUCCESS") {
+              toast.info(
+                `🔄 Đơn hàng #${order.orderId} tự động chuyển sang "${nextStatus}"`,
+                { position: "bottom-right", autoClose: 2500 }
+              );
+              console.log(`✅ Auto cập nhật: ${order.orderId} → ${nextStatus}`);
+            } else if (result === "INSUFFICIENT_QUANTITY") {
+              toast.warning(
+                `⚠️ Đơn #${order.orderId} không đủ hàng, không thể tự cập nhật!`,
+                { position: "bottom-right", autoClose: 3000 }
+              );
+            } else if (result === "STORAGE_NOT_FOUND") {
+              toast.error(
+                `❌ Đơn #${order.orderId}: sản phẩm không tồn tại trong kho!`,
+                { position: "bottom-right", autoClose: 3000 }
+              );
+            } else {
+              console.warn(`⚠️ Auto update thất bại cho đơn #${order.orderId}`);
+            }
+          } catch (err) {
+            console.error("⚠️ Lỗi auto cập nhật trạng thái:", err);
+          }
+        });
+      } catch (err) {
+        console.error("🚨 Lỗi khi fetch danh sách đơn hàng:", err);
+      }
+    }, 1 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []); // 👈 Quan trọng: chỉ chạy 1 lần khi component mount
 
   const handleOpenDialog = (order) => {
     setSelectedOrder(order);
@@ -114,10 +187,24 @@ const OrderSummaryPage = () => {
     }
   };
 
+  const handleViewAddress = async (orderId) => {
+    try {
+      const res = await fetch(
+        `http://localhost:8080/orders/address/${orderId}`
+      );
+      if (!res.ok) throw new Error("Lỗi khi lấy địa chỉ");
+      const data = await res.json();
+      setAddressInfo(data);
+      setOpenAddressDialog(true);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <Box sx={{ width: "100%", p: 10 }}>
       <Typography variant="h5" gutterBottom>
-        Quản lý đơn hàng
+        QUẢN LÝ ĐƠN HÀNG
       </Typography>
 
       <TableContainer
@@ -132,7 +219,11 @@ const OrderSummaryPage = () => {
               <TableCell sx={{ color: "white" }}>KHÁCH HÀNG</TableCell>
               <TableCell sx={{ color: "white" }}>SỐ ĐIỆN THOẠI</TableCell>
               <TableCell sx={{ color: "white" }}>TỔNG TIỀN</TableCell>
-              <TableCell sx={{ color: "white" }}>TRẠNG THÁI ĐƠN HÀNG</TableCell>
+              <TableCell sx={{ color: "white" }}>
+                PHƯƠNG THỨC THANH TOÁN
+              </TableCell>
+              <TableCell sx={{ color: "white" }}>TRẠNG THÁI</TableCell>
+              <TableCell sx={{ color: "white" }}>THAO TÁC</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -150,16 +241,27 @@ const OrderSummaryPage = () => {
                 <TableCell>{order.customerName}</TableCell>
                 <TableCell>{order.phoneNumber}</TableCell>
                 <TableCell>{order.totalAmount}</TableCell>
+                <TableCell>{order.paymentMethod}</TableCell>
+                <TableCell>{order.status || "Chờ duyệt"}</TableCell>
                 <TableCell>
-                  {order.status || "Chờ duyệt"}
-                  <Button
-                    variant="contained"
-                    size="small"
-                    sx={{ ml: 9 }}
-                    onClick={() => handleOpenDialog(order)}
+                  <Box
+                    sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}
                   >
-                    Duyệt
-                  </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleOpenDialog(order)}
+                    >
+                      DUYỆT
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleViewAddress(order.orderId)}
+                    >
+                      XEM ĐỊA CHỈ
+                    </Button>
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}
@@ -185,9 +287,19 @@ const OrderSummaryPage = () => {
               label="Đang xử lý"
             />
             <FormControlLabel
+              value="Đang giao hàng"
+              control={<Radio />}
+              label="Đang giao hàng"
+            />
+            <FormControlLabel
               value="Hoàn thành"
               control={<Radio />}
               label="Hoàn thành"
+            />
+            <FormControlLabel
+              value="Đã huỷ"
+              control={<Radio />}
+              label="Đã huỷ"
             />
           </RadioGroup>
         </DialogContent>
@@ -202,6 +314,7 @@ const OrderSummaryPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
       <Dialog
         open={openDetailDialog}
         onClose={() => setOpenDetailDialog(false)}
@@ -237,10 +350,44 @@ const OrderSummaryPage = () => {
           <Button onClick={() => setOpenDetailDialog(false)}>Đóng</Button>
         </DialogActions>
       </Dialog>
+
       <ToastContainer position="top-right" autoClose={3000} />
+      <Dialog
+        open={openAddressDialog}
+        onClose={() => setOpenAddressDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>THÔNG TIN GIAO HÀNG</DialogTitle>
+        <DialogContent dividers>
+          {addressInfo ? (
+            <>
+              <p>
+                <strong>TÊN NGƯỜI NHẬN:</strong> {addressInfo.receiverName}
+              </p>
+              <p>
+                <strong>HỌ VÀ TÊN:</strong> {addressInfo.username || "Không có"}
+              </p>
+              <p>
+                <strong>SĐT:</strong> {addressInfo.receiverPhone}
+              </p>
+              <p>
+                <strong>ĐỊA CHỈ:</strong> {addressInfo.shippingAddress}
+              </p>
+              <p>
+                <strong>GHI CHÚ:</strong> {addressInfo.note || "Không có"}
+              </p>
+            </>
+          ) : (
+            <p>Đang tải dữ liệu...</p>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenAddressDialog(false)}>ĐÓNG</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
-  
 };
 
 export default OrderSummaryPage;

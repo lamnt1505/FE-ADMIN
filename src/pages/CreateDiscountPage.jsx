@@ -10,10 +10,15 @@ import {
   DialogActions,
   Stack,
   Alert,
+  Snackbar,
 } from "@mui/material";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "../styles/Products/addProduct.css";
 
 const CreateDiscountPage = () => {
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [formData, setFormData] = useState({
     discountName: "",
     discountPercent: "",
@@ -34,22 +39,22 @@ const CreateDiscountPage = () => {
   const validate = () => {
     const newErr = {};
     if (!formData.discountName?.trim())
-      newErr.discountName = "Vui lòng nhập tên chương trình";
+      newErr.discountName = "VUI LÒNG NHẬP TÊN CHƯƠNG TRÌNH";
 
     const percent = Number(formData.discountPercent);
     if (!formData.discountPercent)
-      newErr.discountPercent = "Vui lòng nhập % giảm";
+      newErr.discountPercent = "VUI LÒNG NHẬP % GIẢM";
     else if (isNaN(percent) || percent < 1 || percent > 100)
-      newErr.discountPercent = "Phần trăm giảm phải từ 1 đến 100";
+      newErr.discountPercent = "PHẦN TRĂM GIẢM PHẢI TỪ 1 ĐẾN 100";
 
-    if (!formData.dateStart) newErr.dateStart = "Vui lòng chọn ngày bắt đầu";
-    if (!formData.dateFinish) newErr.dateFinish = "Vui lòng chọn ngày kết thúc";
+    if (!formData.dateStart) newErr.dateStart = "VUI LÒNG CHỌN NGÀY BẮT ĐẦU";
+    if (!formData.dateFinish) newErr.dateFinish = "VUI LÒNG CHỌN NGÀY KẾT THÚC";
 
     if (formData.dateStart && formData.dateFinish) {
       const start = new Date(formData.dateStart);
       const finish = new Date(formData.dateFinish);
       if (finish < start)
-        newErr.dateFinish = "Ngày kết thúc phải ≥ ngày bắt đầu";
+        newErr.dateFinish = "NGÀY KẾT THÚC PHẢI ≥ NGÀY BẮT ĐẦU";
     }
 
     setErrors(newErr);
@@ -61,22 +66,26 @@ const CreateDiscountPage = () => {
     if (!validate()) return;
 
     try {
-      const res = await axios.post("http://localhost:8080/api/v1/discounts/generate", {
-        discountName: formData.discountName,
-        discountPercent: formData.discountPercent,
-        dateStart: formData.dateStart,
-        dateFinish: formData.dateFinish,
-      });
+      const res = await axios.post(
+        "http://localhost:8080/api/v1/discounts/generate",
+        {
+          discountName: formData.discountName,
+          discountPercent: formData.discountPercent,
+          dateStart: formData.dateStart,
+          dateFinish: formData.dateFinish,
+        }
+      );
 
       if (res.data?.discountCode !== undefined) {
         setDiscountCode(res.data.discountCode);
         setDialogOpen(true);
+        toast.success("TẠO MÃ GIẢM GIÁ THÀNH CÔNG!");
       } else {
-        alert("Tạo mã thất bại!");
+        toast.error("TẠO MÃ THẤT BẠI!");
       }
     } catch (err) {
       console.error(err);
-      alert("Có lỗi xảy ra khi gọi API!");
+      toast.error("CÓ LỖI XẢY RA KHI GỌI API!");
     }
   };
 
@@ -95,120 +104,151 @@ const CreateDiscountPage = () => {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(discountCode);
-      alert("Đã copy mã giảm giá vào clipboard!");
+      setSnackbarOpen(true);
     } catch {
       alert("Không thể copy, vui lòng copy thủ công.");
     }
   };
 
   return (
-    <Box sx={{
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    pt: 12,
-    backgroundColor: "#f5f5f5",
-  }}>
-    <Box
-    sx={{
-      width: "100%",
-      maxWidth: 560,
-      p: 3,
-      bgcolor: "#fff",
-      boxShadow: 3,
-      borderRadius: 2,
-    }}
-  >
-      <Typography variant="h5" gutterBottom>
-        Tạo mã giảm giá
-      </Typography>
-
-      <form onSubmit={handleSubmit} noValidate>
-        <Stack spacing={2}>
-          <TextField
-            label="Tên chương trình"
-            name="discountName"
-            value={formData.discountName}
-            onChange={handleChange}
-            error={!!errors.discountName}
-            helperText={errors.discountName}
-            fullWidth
-            required
-          />
-          <TextField
-            label="Phần trăm giảm (%)"
-            name="discountPercent"
-            type="number"
-            value={formData.discountPercent}
-            onChange={handleChange}
-            error={!!errors.discountPercent}
-            helperText={errors.discountPercent || "Nhập số từ 1–100"}
-            fullWidth
-            required
-            inputProps={{ min: 1, max: 100 }}
-          />
-
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <TextField
-              label="Ngày bắt đầu"
-              name="dateStart"
-              type="date"
-              value={formData.dateStart}
-              onChange={handleChange}
-              error={!!errors.dateStart}
-              helperText={errors.dateStart}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Ngày kết thúc"
-              name="dateFinish"
-              type="date"
-              value={formData.dateFinish}
-              onChange={handleChange}
-              error={!!errors.dateFinish}
-              helperText={errors.dateFinish}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              required
-            />
-          </Stack>
-
-          {formData.dateStart && formData.dateFinish && new Date(formData.dateFinish) < new Date(formData.dateStart) && (
-            <Alert severity="error">Ngày kết thúc phải sau hoặc bằng ngày bắt đầu</Alert>
-          )}
-
-          <Stack direction="row" spacing={2}>
-            <Button variant="outlined" onClick={handleReset}>
-              Làm mới
-            </Button>
-            <Button variant="contained" color="primary" type="submit" fullWidth>
-              Tạo mã
-            </Button>
-          </Stack>
-        </Stack>
-      </form>
-      <Dialog open={dialogOpen} onClose={handleClose}>
-        <DialogTitle>Mã giảm giá của bạn</DialogTitle>
-        <DialogContent>
-          <Typography variant="h6" color="primary" align="center" sx={{ mt: 1 }}>
-            {discountCode || "Không có mã"}
+    <>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          pt: 12,
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 560,
+            p: 3,
+            bgcolor: "#fff",
+            boxShadow: 3,
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="h5" gutterBottom>
+            TẠO MÃ GIẢM GIÁ MỚI
           </Typography>
-          <Typography variant="body2" align="center" sx={{ mt: 1 }}>
-            Hãy lưu mã này để dùng khi thanh toán.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCopy}>Copy mã</Button>
-          <Button onClick={handleClose} autoFocus>
-            Đóng
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-    </Box>
+
+          <form onSubmit={handleSubmit} noValidate>
+            <Stack spacing={2}>
+              <TextField
+                label="TÊN CHƯƠNG TRÌNH"
+                name="discountName"
+                value={formData.discountName}
+                onChange={handleChange}
+                error={!!errors.discountName}
+                helperText={errors.discountName}
+                fullWidth
+                required
+              />
+              <TextField
+                label="PHẦN TRĂM GIẢM (%)"
+                name="discountPercent"
+                type="number"
+                value={formData.discountPercent}
+                onChange={handleChange}
+                error={!!errors.discountPercent}
+                helperText={errors.discountPercent || "Nhập số từ 1–100"}
+                fullWidth
+                required
+                inputProps={{ min: 1, max: 100 }}
+              />
+
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <TextField
+                  label="NGÀY BẮT ĐẦU"
+                  name="dateStart"
+                  type="date"
+                  value={formData.dateStart}
+                  onChange={handleChange}
+                  error={!!errors.dateStart}
+                  helperText={errors.dateStart}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                  required
+                />
+                <TextField
+                  label="NGÀY KẾT THÚC"
+                  name="dateFinish"
+                  type="date"
+                  value={formData.dateFinish}
+                  onChange={handleChange}
+                  error={!!errors.dateFinish}
+                  helperText={errors.dateFinish}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                  required
+                />
+              </Stack>
+
+              {formData.dateStart &&
+                formData.dateFinish &&
+                new Date(formData.dateFinish) <
+                  new Date(formData.dateStart) && (
+                  <Alert severity="error">
+                    NGÀY KẾT THÚC PHẢI SAU HOẶC BẰNG NGÀY BẮT ĐẦU
+                  </Alert>
+                )}
+
+              <Stack direction="row" spacing={2}>
+                <Button variant="outlined" onClick={handleReset}>
+                  LÀM MỚI
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  type="submit"
+                  fullWidth
+                >
+                  TẠO MÃ GIẢM GIÁ
+                </Button>
+              </Stack>
+            </Stack>
+          </form>
+          <Dialog open={dialogOpen} onClose={handleClose}>
+            <DialogTitle>MÃ GIẢM GIÁ CỦA BẠN</DialogTitle>
+            <DialogContent>
+              <Typography
+                variant="h6"
+                color="primary"
+                align="center"
+                sx={{ mt: 1 }}
+              >
+                {discountCode || "Không có mã"}
+              </Typography>
+              <Typography variant="body2" align="center" sx={{ mt: 1 }}>
+                HÃY LƯU MÃ NÀY ĐỂ DÙNG KHI THANH TOÁN.
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCopy}>COPY MÃ</Button>
+              <Button onClick={handleClose} autoFocus>
+                ĐÓNG
+              </Button>
+            </DialogActions>$env:PORT=3005; npm start
+
+          </Dialog>
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={2000}
+            onClose={() => setSnackbarOpen(false)}
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          >
+            <Alert severity="success" sx={{ width: "100%" }}>
+              ✅ Đã copy mã giảm giá vào clipboard!
+            </Alert>
+          </Snackbar>
+        </Box>
+      </Box>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+    </>
   );
 };
 

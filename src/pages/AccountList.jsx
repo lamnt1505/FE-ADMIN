@@ -20,7 +20,10 @@ import "react-toastify/dist/ReactToastify.css";
 
 const AccountList = () => {
   const [accounts, setAccounts] = useState([]);
+  const accountData = JSON.parse(localStorage.getItem("account"));
+  const currentRole = accountData?.role?.toUpperCase();
 
+  console.log("Current Role:", currentRole);
   useEffect(() => {
     fetchAccounts();
   }, []);
@@ -31,7 +34,6 @@ const AccountList = () => {
         "http://localhost:8080/api/v1/account/Listgetall"
       );
       setAccounts(res.data);
-      toast.success("Load dữ liệu thành công");
     } catch (err) {
       console.error("Lỗi khi lấy danh sách tài khoản:", err);
       toast.error("Lỗi khi lấy danh sách tài khoản");
@@ -58,7 +60,7 @@ const AccountList = () => {
   return (
     <Box sx={{ p: 3, mt: 10 }}>
       <Typography variant="h5" gutterBottom>
-        Danh Sách Tài Khoản
+        DANH SÁCH TÀI KHOẢN
       </Typography>
 
       <TableContainer component={Paper}>
@@ -69,31 +71,31 @@ const AccountList = () => {
                 <b>ID</b>
               </TableCell>
               <TableCell>
-                <b>Ảnh</b>
+                <b>ẢNH</b>
               </TableCell>
               <TableCell>
-                <b>Tên tài khoản</b>
+                <b>TÊN TÀI KHOẢN</b>
               </TableCell>
               <TableCell>
-                <b>Username</b>
+                <b>USERNAME</b>
               </TableCell>
               <TableCell>
-                <b>Email</b>
+                <b>E-MAIL</b>
               </TableCell>
               <TableCell>
-                <b>SĐT</b>
+                <b>PHONE</b>
               </TableCell>
               <TableCell>
-                <b>Địa chỉ</b>
+                <b>ĐỊA CHỈ</b>
               </TableCell>
               <TableCell>
-                <b>Ngày sinh</b>
+                <b>NGÀY SINH</b>
               </TableCell>
               <TableCell>
-                <b>Role</b>
+                <b>ROLE</b>
               </TableCell>
               <TableCell>
-                <b>Thao tác</b>
+                <b>PHÂN QUYỀN</b>
               </TableCell>
             </TableRow>
           </TableHead>
@@ -118,30 +120,34 @@ const AccountList = () => {
                 <TableCell>{acc.local}</TableCell>
                 <TableCell>{acc.dateOfBirth}</TableCell>
                 <TableCell>{acc.admin ? "✅" : "❌"}</TableCell>
-                <TableCell>
-                  <Select
-                    value={acc.typeAccount || "USER"}
-                    onChange={(e) =>
-                      handleRoleChange(acc.accountID, e.target.value)
-                    }
-                    size="small"
-                  >
-                    <MenuItem value="USER">USER</MenuItem>
-                    <MenuItem value="EMPLOYEE">EMPLOYEE</MenuItem>
-                    <MenuItem value="ADMIN">ADMIN</MenuItem>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() =>
-                      handleRoleChange(acc.accountID, acc.typeAccount)
-                    }
-                  >
-                    Lưu
-                  </Button>
-                </TableCell>
+                {currentRole === "ADMIN" && (
+                  <>
+                    <TableCell>
+                      <Select
+                        value={acc.typeAccount || "USER"}
+                        onChange={(e) =>
+                          handleRoleChange(acc.accountID, e.target.value)
+                        }
+                        size="small"
+                      >
+                        <MenuItem value="USER">USER</MenuItem>
+                        <MenuItem value="EMPLOYEE">EMPLOYEE</MenuItem>
+                        <MenuItem value="ADMIN">ADMIN</MenuItem>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() =>
+                          handleRoleChange(acc.accountID, acc.typeAccount)
+                        }
+                      >
+                        Lưu
+                      </Button>
+                    </TableCell>
+                  </>
+                )}
               </TableRow>
             ))}
           </TableBody>

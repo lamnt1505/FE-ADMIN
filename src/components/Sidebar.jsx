@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Drawer, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { MdEditNote } from "react-icons/md";
-import { MdDialerSip } from "react-icons/md";
+import { CiDiscount1 } from "react-icons/ci";
 import { MdOutlineCheckroom } from "react-icons/md";
 import { MdDashboardCustomize } from "react-icons/md";
 import { MdAccountCircle } from "react-icons/md";
@@ -13,6 +13,22 @@ import { MdOutlineLocalShipping } from "react-icons/md";
 import { Link } from 'react-router-dom';
 
 const Sidebar = ({ drawerWidth }) => {
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    const accountData = localStorage.getItem("account");
+    if (accountData) {
+      try {
+        const parsed = JSON.parse(accountData);
+        setRole(parsed.typeAccount || parsed.role || "ADMIN");
+      } catch (err) {
+        console.error("Lỗi khi đọc role:", err);
+        setRole("ADMIN");
+      }
+    } else {
+      setRole("ADMIN");
+    }
+  }, []);
   return (
     <Drawer
       variant="permanent"
@@ -31,10 +47,12 @@ const Sidebar = ({ drawerWidth }) => {
         TỔNG QUAN
       </Typography>
       <List>
-        <ListItem button component={Link} to="/dashboard">
-          <ListItemIcon sx={{ color: 'white' }}><MdDashboardCustomize /></ListItemIcon>
-          <ListItemText primary="TRANG TỔNG QUAN" />
-        </ListItem>
+        {role === "ADMIN" && (
+          <ListItem button component={Link} to="/dashboard">
+            <ListItemIcon sx={{ color: 'white' }}><MdDashboardCustomize /></ListItemIcon>
+            <ListItemText primary="TRANG TỔNG QUAN" />
+          </ListItem>
+        )}
         <ListItem button component={Link} to="/storages">
           <ListItemIcon sx={{ color: 'white' }}><MdOutlineLocalShipping /></ListItemIcon>
           <ListItemText primary="QUẢN LÝ LƯU TRỮ" />
@@ -61,14 +79,14 @@ const Sidebar = ({ drawerWidth }) => {
         </ListItem>
         <ListItem button component={Link} to="/orders">
           <ListItemIcon sx={{ color: 'white' }}><ShoppingCartIcon /></ListItemIcon>
-          <ListItemText primary="QUẢN LÝ GIỎ HÀNG" />
+          <ListItemText primary="QUẢN LÝ ĐƠN HÀNG" />
         </ListItem>
         <ListItem button component={Link} to="/votes">
           <ListItemIcon sx={{ color: 'white' }}><MdEditNote /></ListItemIcon>
           <ListItemText primary="QUẢN LÝ ĐÁNH GIÁ" />
         </ListItem>
          <ListItem button component={Link} to="/discounts">
-          <ListItemIcon sx={{ color: 'white' }}><MdDialerSip /></ListItemIcon>
+          <ListItemIcon sx={{ color: 'white' }}><CiDiscount1 /></ListItemIcon>
           <ListItemText primary="QUẢN LÝ MÃ GIẢM GIÁ" />
         </ListItem>
       </List>

@@ -34,7 +34,7 @@ const StorageList = () => {
     quantity: 0,
     createDate: "",
     updateDate: "",
-    users: "admin",
+    users: "ADMIN",
   });
 
   useEffect(() => {
@@ -59,7 +59,6 @@ const StorageList = () => {
         "http://localhost:8080/api/v1/product/Listgetall"
       );
       setProducts(res.data);
-      toast.success("Sản phẩm đã được tải!");
     } catch (err) {
       toast.error("Lỗi khi load sản phẩm:", err);
     }
@@ -147,16 +146,15 @@ const StorageList = () => {
   return (
     <Box sx={{ p: 3, mt: 10 }}>
       <Typography variant="h5" gutterBottom>
-        Danh Sách Kho Hàng
+        DANH SÁCH KHO HÀNG
       </Typography>
-
       <Button
         variant="contained"
         color="primary"
         sx={{ mb: 2 }}
         onClick={() => (window.location.href = "/add-storage")}
       >
-        + Thêm Nhập Kho
+        + THÊM NHẬP KHO
       </Button>
 
       <TableContainer component={Paper}>
@@ -164,12 +162,12 @@ const StorageList = () => {
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>Người nhập</TableCell>
-              <TableCell>Sản phẩm</TableCell>
-              <TableCell>Số lượng</TableCell>
-              <TableCell>Ngày nhập</TableCell>
-              <TableCell>Ngày cập nhật</TableCell>
-              <TableCell>Thao tác</TableCell>
+              <TableCell>NGƯỜI NHẬP</TableCell>
+              <TableCell>SẢN PHẨM</TableCell>
+              <TableCell>SỐ LƯỢNG</TableCell>
+              <TableCell>NGÀY NHẬP</TableCell>
+              <TableCell>NGÀY XUẤT KHO</TableCell>
+              <TableCell>THAO TÁC</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
