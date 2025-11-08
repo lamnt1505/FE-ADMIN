@@ -28,13 +28,12 @@
     "react-toastify": "^11.0.5",
     "recharts": "^3.2.1",
     "redux": "^5.0.1",
-    "springshop-fe-admin": "file:",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
-    "start3005": "set PORT=3005 && react-scripts start",
-    "build": "react-scripts build",
+    "start:port": "set PORT=3005 && react-scripts start",
+    "build": "CI=false npm install --legacy-peer-deps && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -57,6 +56,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@tailwindcss/postcss": "^4.1.12",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
