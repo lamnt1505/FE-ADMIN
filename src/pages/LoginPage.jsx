@@ -6,6 +6,7 @@ import { User, Lock, RefreshCcw, Eye, EyeOff } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import bgImage from '../images/1658744518_e-commerce-executive-careerbuilder.jpg';
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../config/config.js";
 
 export default function LoginPage() {
   const [accountName, setAccountName] = useState("");
@@ -16,18 +17,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const refreshCaptcha = async () => {
-    try {
-      const res = await api.get("/account/captcha", {
-        method: "GET",
-        credentials: "include", // 🔥 bắt buộc
-      });
-      const imgUrl = URL.createObjectURL(res.data);
-      setCaptchaUrl(imgUrl);
-    } catch (err) {
-      console.error("Lỗi captcha:", err);
-    }
-  };
+const refreshCaptcha = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/account/captcha`, {
+      method: "GET",
+      credentials: "include",
+    });
+    const blob = await res.blob();
+    const imgUrl = URL.createObjectURL(blob);
+    setCaptchaUrl(imgUrl);
+  } catch (err) {
+    console.error("Lỗi captcha:", err);
+  }
+};
 
   useEffect(() => {
     refreshCaptcha();
