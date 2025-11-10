@@ -37,11 +37,11 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     try {
-      const res = await api.post("/account/login", {
-        accountName,
-        accountPass,
-        captcha,
-      });
+      const res = await api.post(
+        "/account/login",
+        { accountName, accountPass, captcha },
+        { withCredentials: true }   // 👈 thêm dòng này
+      );
 
       const data = res.data;
 
