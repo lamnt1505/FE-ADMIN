@@ -19,8 +19,8 @@ export default function LoginPage() {
   const refreshCaptcha = async () => {
     try {
       const res = await api.get("/account/captcha", {
-        responseType: "blob",
-        withCredentials: true,
+        method: "GET",
+        credentials: "include", // 🔥 bắt buộc
       });
       const imgUrl = URL.createObjectURL(res.data);
       setCaptchaUrl(imgUrl);
