@@ -4,7 +4,7 @@ import api from "../api/axios";
 import { setAuth } from "../utils/auth";
 import { User, Lock, RefreshCcw, Eye, EyeOff } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
-import bgImage from '../images/1658744518_e-commerce-executive-careerbuilder.jpg';
+import bgImage from "../images/1658744518_e-commerce-executive-careerbuilder.jpg";
 import "react-toastify/dist/ReactToastify.css";
 import API_BASE_URL from "../config/config.js";
 
@@ -17,20 +17,20 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-const refreshCaptcha = async () => {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/v1/account/captcha`, {
-      method: "GET",
-      credentials: "include",
-      mode: "cors"
-    });
-    const blob = await res.blob();
-    const imgUrl = URL.createObjectURL(blob);
-    setCaptchaUrl(imgUrl);
-  } catch (err) {
-    console.error("Lỗi captcha:", err);
-  }
-};
+  const refreshCaptcha = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/account/captcha`, {
+        method: "GET",
+        credentials: "include",
+        mode: "cors",
+      });
+      const blob = await res.blob();
+      const imgUrl = URL.createObjectURL(blob);
+      setCaptchaUrl(imgUrl);
+    } catch (err) {
+      console.error("Lỗi captcha:", err);
+    }
+  };
 
   useEffect(() => {
     refreshCaptcha();
@@ -48,7 +48,8 @@ const refreshCaptcha = async () => {
 
       const data = res.data;
       console.log("Login response:", data);
-      
+
+      // ❌ Captcha sai
       if (data.isCaptchaValid === false) {
         setError("Captcha không hợp lệ. Vui lòng thử lại.");
         refreshCaptcha();
@@ -56,6 +57,7 @@ const refreshCaptcha = async () => {
         return;
       }
 
+      // ✅ Check đúng trường: data.status hoặc data.success
       if (data.status || data.success) {
         localStorage.setItem("accountName", accountName);
         let role = "USER";
@@ -81,6 +83,7 @@ const refreshCaptcha = async () => {
 
         localStorage.setItem("accountId", data.accountID);
 
+        // ✅ Điều hướng đúng role
         if (role === "ADMIN" || role === "EMPLOYEE") {
           navigate("/dashboard", { replace: true });
         } else {
@@ -146,18 +149,20 @@ const refreshCaptcha = async () => {
               className="w-full bg-transparent outline-none"
               required
             />
-                        <button
+            <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="text-gray-500 hover:text-gray-700 ml-2 focus:outline-none"
             >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
             </button>
           </div>
           <div>
-            
             <div className="flex items-center justify-between mb-2">
-              
               <img
                 src={captchaUrl}
                 alt="captcha"
@@ -186,18 +191,17 @@ const refreshCaptcha = async () => {
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
           >
-            
             ĐĂNG NHẬP
           </button>
         </form>
         <div className="flex justify-between mt-4"> </div>
       </div>
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              newestOnTop
-            />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+      />
     </div>
   );
 }
