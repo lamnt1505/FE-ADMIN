@@ -38,6 +38,7 @@ import {
   changePassword,
 } from "../api/accountApi";
 const drawerWidth = 240;
+import { useNavigate } from "react-router-dom";
 
 const Header = ({ drawerWidth }) => {
   const { accountName } = useAuthCookie();
@@ -52,6 +53,7 @@ const Header = ({ drawerWidth }) => {
   const [newMsgCount, setNewMsgCount] = useState(0);
   const [readUsers, setReadUsers] = useState([]);
   const chatEndRef = useRef(null);
+  const navigate = useNavigate();
 
   const [openChangePassword, setOpenChangePassword] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
@@ -105,7 +107,7 @@ const Header = ({ drawerWidth }) => {
       localStorage.removeItem("accountId");
       localStorage.removeItem("accountName");
       localStorage.removeItem("auth");
-      window.location.href = "/login";
+      navigate("/login");
     } catch (err) {
       console.error("Lỗi logout:", err);
     }
