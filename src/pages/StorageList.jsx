@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import { Box, Button } from "@mui/material";
 import {
-  Box,
-  Typography,
   Table,
   TableBody,
   TableCell,
@@ -10,74 +9,112 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Button,
+  Typography,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  MenuItem,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import API_BASE_URL from "../config/config.js";
-import { useNavigate } from "react-router-dom";
 
-const StorageList = () => {
-  const navigate = useNavigate();
-  const [storages, setStorages] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [selectedStorage, setSelectedStorage] = useState(null);
+const Trademarks = () => {
+  const fileInputRef = useRef(null);
+  const [trademarks, setTrademarks] = useState([]);
+  const [openAdd, setOpenAdd] = useState(false);
+  const [newName, setNewName] = useState("");
+
   const [openDelete, setOpenDelete] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
-  const [form, setForm] = useState({
-    productId: "",
-    quantity: 0,
-    createDate: "",
-    updateDate: "",
-    users: "ADMIN",
-  });
+  const [openUpdate, setOpenUpdate] = useState(false);
+  const [updateId, setUpdateId] = useState(null);
+  const [updateName, setUpdateName] = useState("");
 
   useEffect(() => {
-    fetchStorages();
-    fetchProducts();
+    fetchTrademarks();
   }, []);
 
-  const fetchStorages = async () => {
+  const fetchTrademarks = async () => {
     try {
       const res = await axios.get(
-        `${API_BASE_URL}/api/v1/storage/Listgetall`
+        `${API_BASE_URL}/api/trademark/gettrademark`
       );
-      setStorages(res.data);
+      setTrademarks(res.data);
     } catch (err) {
-      toast.error("Lỗi khi lấy danh sách:", err);
+      console.error("Lỗi khi tải trademarks:", err);
     }
   };
 
-  const fetchProducts = async () => {
+  const handleOpenAdd = () => setOpenAdd(true);
+
+  const handleCloseAdd = () => {
+    setOpenAdd(false);
+    setNewName("");
+  };
+
+  const handleConfirmAdd = async () => {
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/v1/product/Listgetall`
-      );
-      setProducts(res.data);
+      await axios.post(`${API_BASE_URL}/api/trademark/add`, {
+        tradeName: newName.trim(),
+      });
+      toast.success("✅ Thêm thương hiệu thành công!");
+      handleCloseAdd();
+      fetchTrademarks();
     } catch (err) {
-      toast.error("Lỗi khi load sản phẩm:", err);
+      console.error("Lỗi khi thêm trademark:", err);
+      if (err.response) {
+        const { status, data } = err.response;
+
+        if (status === 409 && data.error) {
+          toast.error(`⚠️ ${data.error}`); // lỗi trùng thương hiệu
+        } else if (status === 400 && data.error) {
+          toast.error(`⚠️ ${data.error}`); // lỗi dữ liệu không hợp lệ
+        } else {
+          toast.error("❌ Có lỗi xảy ra khi thêm thương hiệu!");
+        }
+      } else {
+        toast.error("🚫 Không thể kết nối đến server!");
+      }
     }
   };
 
-  const handleConfirmDelete = async () => {
-    if (!deleteId) return;
+  const handleOpenUpdate = (trademark) => {
+    setUpdateId(trademark.tradeID);
+    setUpdateName(trademark.trademarkName);
+    setOpenUpdate(true);
+  };
+
+  const handleCloseUpdate = () => {
+    setOpenUpdate(false);
+    setUpdateId(null);
+    setUpdateName("");
+  };
+
+  const handleConfirmUpdate = async () => {
+    if (!updateId) {
+      toast.warning("Không có ID để cập nhật!");
+      return;
+    }
     try {
-      await axios.delete(`${API_BASE_URL}/api/v1/storage/delete/${deleteId}`);
-      setStorages(storages.filter((s) => s.idImport !== deleteId));
-      toast.success("Xóa thành công!");
+      await axios.put(
+        `${API_BASE_URL}/api/trademark/update/${updateId}`,
+        {
+          tradeID: updateId,
+          tradeName: updateName,
+        }
+      );
+      toast.success("Cập nhật thành công!");
+      handleCloseUpdate();
+      fetchTrademarks();
     } catch (err) {
-      toast.error("Lỗi khi xóa:", err);
-    } finally {
-      setOpenDelete(false);
-      setDeleteId(null);
+      console.error("Lỗi update trademark:", err);
+      toast.error("Có lỗi xảy ra khi cập nhật!");
     }
   };
 
@@ -86,207 +123,213 @@ const StorageList = () => {
     setOpenDelete(true);
   };
 
-  const handleOpenUpdate = async (storage) => {
+  const handleCloseDelete = () => {
+    setOpenDelete(false);
+    setDeleteId(null);
+  };
+  
+  const handleConfirmDelete = async () => {
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/v1/storage/${storage.idImport}/get`
+      await axios.delete(
+        `${API_BASE_URL}/api/trademark/delete/${deleteId}`
       );
-      const detail = res.data;
-
-      setSelectedStorage(detail);
-      setForm({
-        productId: detail.productId || "",
-        quantity: detail.quantity || 0,
-        createDate: detail.createDate || "",
-        updateDate: detail.updateDate || "",
-        users: detail.users || "admin",
-      });
-      setOpen(true);
+      toast.success("Xóa thành công!");
+      handleCloseDelete();
+      fetchTrademarks();
     } catch (err) {
-      console.error("Lỗi khi lấy chi tiết:", err);
-      toast.error("Không thể tải chi tiết kho hàng!");
+      console.error("Lỗi khi xóa trademark:", err);
+      toast.error("Có lỗi xảy ra khi xóa!");
     }
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    setSelectedStorage(null);
+  const handleButtonClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm({
-      ...form,
-      [name]: name === "quantity" ? Number(value) : value,
-    });
-  };
-
-  const handleUpdate = async () => {
-    if (!selectedStorage) return;
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
     const formData = new FormData();
-    formData.append("idImport", selectedStorage.idImport);
-    formData.append("users", form.users);
-    formData.append("createDate", form.createDate);
-    formData.append("updateDate", form.updateDate);
-    formData.append("productId", form.productId);
-    formData.append("quantity", form.quantity);
+    formData.append("file", file);
 
     try {
-      await axios.put(
-        `${API_BASE_URL}/api/v1/storage/update/${selectedStorage.idImport}`,
+      const res = await axios.post(
+        `${API_BASE_URL}/api/trademark/import-trademark`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-      toast.success("Cập nhật thành công!");
-      handleClose();
-      fetchStorages();
+      toast.success(res.data.message || "Import thành công!");
+      fetchTrademarks();
     } catch (err) {
-      console.error("Lỗi khi cập nhật:", err);
+      console.error("Lỗi import:", err);
+      toast.error(err.response?.data?.message || "Import thất bại!");
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/trademark/download`,
+        { responseType: "blob" }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "API-TRADEMARK.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Lỗi khi tải file:", error);
+      toast.error("Không thể tải file mẫu!");
     }
   };
 
   return (
-    <Box sx={{ p: 3, mt: 10 }}>
-      <Typography variant="h5" gutterBottom>
-        DANH SÁCH KHO HÀNG
+    <Box sx={{ p: 2, m: 0, width: "100%" }}>
+      <Typography variant="h5" gutterBottom sx={{ px: 2, pt: 2, pb: 1 }}>
+        DANH SÁCH THƯƠNG HIỆU (Trademark)
       </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        sx={{ mb: 2 }}
-       onClick={() => navigate("/add-storage")}
-      >
-        + THÊM NHẬP KHO
-      </Button>
 
-      <TableContainer component={Paper}>
+      <Box sx={{ display: "flex", gap: 3, mb: 2 }}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          color="primary"
+          onClick={handleOpenAdd}
+        >
+          THÊM MỚI
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<CloudDownloadIcon />}
+          color="info"
+          onClick={handleDownloadTemplate}
+        >
+          TẢI FILE MẪU
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<CloudUploadIcon />}
+          color="success"
+          onClick={handleButtonClick}
+        >
+          TẢI LÊN FILE EXCEL
+        </Button>
+        <input
+          type="file"
+          accept=".xlsx,.xls"
+          style={{ display: "none" }}
+          ref={fileInputRef}
+          onChange={handleFileChange}
+        />
+      </Box>
+
+      <TableContainer
+        component={Paper}
+        sx={{ width: "100%", boxShadow: "none", borderRadius: 0 }}
+      >
         <Table>
-          <TableHead>
+          <TableHead sx={{ backgroundColor: "#2563EB" }}>
             <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>NGƯỜI NHẬP</TableCell>
-              <TableCell>SẢN PHẨM</TableCell>
-              <TableCell>SỐ LƯỢNG</TableCell>
-              <TableCell>NGÀY NHẬP</TableCell>
-              <TableCell>NGÀY XUẤT KHO</TableCell>
-              <TableCell>THAO TÁC</TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.2rem" }}>
+                MÃ THƯƠNG HIỆU
+              </TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.2rem" }}>
+                TÊN THƯƠNG HIỆU
+              </TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.2rem" }}>
+                CHỨC NĂNG
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {storages.map((s) => (
-              <TableRow key={s.idImport}>
-                <TableCell>{s.idImport}</TableCell>
-                <TableCell>{s.users}</TableCell>
-                <TableCell>{s.product_name}</TableCell>
-                <TableCell>{s.quantity}</TableCell>
-                <TableCell>{s.createDate}</TableCell>
-                <TableCell>{s.updateDate}</TableCell>
+            {trademarks.map((trademark) => (
+              <TableRow key={trademark.tradeID}>
+                <TableCell>{trademark.tradeID}</TableCell>
+                <TableCell>{trademark.tradeName}</TableCell>
                 <TableCell>
-                  <Button
-                    variant="outlined"
-                    color="info"
-                    size="small"
-                    sx={{ mr: 1 }}
-                  >
-                    Chi tiết
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                    sx={{ mr: 1 }}
-                    onClick={() => handleOpenUpdate(s)}
-                  >
-                    Cập nhật
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    size="small"
-                    onClick={() => handleOpenDelete(s.idImport)}
-                  >
-                    Xóa
-                  </Button>
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      onClick={() => handleOpenUpdate(trademark)}
+                    >
+                      CẬP NHẬT
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      size="small"
+                      onClick={() => handleOpenDelete(trademark.tradeID)}
+                    >
+                      XÓA
+                    </Button>
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Cập Nhật Kho Hàng</DialogTitle>
+      <Dialog open={openAdd} onClose={handleCloseAdd}>
+        <DialogTitle>THÊM THƯƠNG HIỆU</DialogTitle>
         <DialogContent>
           <TextField
-            select
-            label="Sản phẩm"
-            name="productId"
-            value={form.productId}
-            onChange={handleChange}
+            label="TÊN THƯƠNG HIỆU"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
             fullWidth
-            margin="normal"
-            disabled
-          >
-            {products.map((p) => (
-              <MenuItem key={p.id} value={p.id}>
-                {p.name}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Số lượng"
-            name="quantity"
-            type="number"
-            value={form.quantity}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Ngày nhập"
-            name="createDate"
-            type="date"
-            value={form.createDate}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            label="Ngày cập nhật"
-            name="updateDate"
-            type="date"
-            value={form.updateDate}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            label="Người nhập"
-            name="users"
-            value={form.users}
-            disabled
-            fullWidth
-            margin="normal"
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Đóng</Button>
-          <Button onClick={handleUpdate} variant="contained" color="primary">
-            Update
+          <Button onClick={handleCloseAdd}>Hủy</Button>
+          <Button
+            onClick={handleConfirmAdd}
+            variant="contained"
+            color="primary"
+          >
+            THÊM
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={openDelete} onClose={() => setOpenDelete(false)}>
-        <DialogTitle>Xác nhận xóa</DialogTitle>
+      <Dialog open={openUpdate} onClose={handleCloseUpdate}>
+        <DialogTitle>CẬP NHẬT THƯƠNG HIỆU</DialogTitle>
         <DialogContent>
-          Bạn có chắc muốn xóa bản ghi này?
+          <TextField
+            label="TÊN THƯƠNG HIỆU"
+            value={updateName}
+            onChange={(e) => setUpdateName(e.target.value)}
+            fullWidth
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDelete(false)}>Hủy</Button>
-          <Button color="error" onClick={handleConfirmDelete}>
-            Xóa
+          <Button onClick={handleCloseUpdate}>Hủy</Button>
+          <Button
+            onClick={handleConfirmUpdate}
+            variant="contained"
+            color="primary"
+          >
+            LƯU
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={openDelete} onClose={handleCloseDelete}>
+        <DialogTitle>XÁC NHẬN XÓA</DialogTitle>
+        <DialogContent>
+          BẠN CÓ CHẮC MUỐN XÓA THƯƠNG HIỆU NÀY KHÔNG?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDelete}>HỦY</Button>
+          <Button
+            onClick={handleConfirmDelete}
+            variant="contained"
+            color="error"
+          >
+            XÓA
           </Button>
         </DialogActions>
       </Dialog>
@@ -295,4 +338,4 @@ const StorageList = () => {
   );
 };
 
-export default StorageList;
+export default Trademarks;

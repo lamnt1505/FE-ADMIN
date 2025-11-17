@@ -23,7 +23,6 @@ import {
 import MailIcon from "@mui/icons-material/Mail";
 import useAuthCookie from "../hooks/useAuthCookie";
 import { db } from "../firebase/firebaseConfig";
-
 import {
   ref,
   onChildAdded,
@@ -39,8 +38,6 @@ import {
   updateAccount,
   changePassword,
 } from "../api/accountApi";
-const drawerWidth = 240;
-
 
 const Header = ({ drawerWidth }) => {
   const { accountName } = useAuthCookie();
@@ -200,7 +197,6 @@ const Header = ({ drawerWidth }) => {
     }
   };
 
-  // ============ 💬 DANH SÁCH KH ============
   const handleOpenChatList = async () => {
     setOpenChatList(true);
     setLoading(true);
@@ -250,7 +246,7 @@ const Header = ({ drawerWidth }) => {
       setNewMsgCount(newCount);
     });
   };
-  // ============ 🧍‍♂️ CHỌN KH ĐỂ CHAT ============
+
   const handleSelectUser = async (senderName) => {
     setSelectedUser(senderName);
     setOpenChatBox(true);
@@ -269,7 +265,7 @@ const Header = ({ drawerWidth }) => {
     });
     setNewMsgCount((prev) => Math.max(prev - 1, 0));
   };
-  // ============ 📨 GỬI TIN ADMIN ============
+  
   const handleSendReply = async () => {
     if (!replyText.trim() || !selectedUser) return;
     try {
@@ -297,9 +293,8 @@ const Header = ({ drawerWidth }) => {
       sx={{
         width: `calc(100% - ${drawerWidth}px)`,
         ml: `${drawerWidth}px`,
-        backgroundColor: "#fff",
-        color: "#000",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+        transition: "0.3s",
+        background: "#2563EB",
       }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
@@ -342,8 +337,6 @@ const Header = ({ drawerWidth }) => {
           </Menu>
         </div>
       </Toolbar>
-
-      {/* 💬 DANH SÁCH KH */}
       <Dialog
         open={openChatList}
         onClose={() => setOpenChatList(false)}
@@ -384,7 +377,6 @@ const Header = ({ drawerWidth }) => {
           )}
         </DialogContent>
       </Dialog>
-      {/* 🗨️ CỬA SỔ CHAT */}
       <Dialog
         open={openChatBox}
         onClose={() => setOpenChatBox(false)}
@@ -392,7 +384,7 @@ const Header = ({ drawerWidth }) => {
         maxWidth="sm"
       >
         <DialogTitle sx={{ textAlign: "center", fontWeight: 600 }}>
-          Chat với {selectedUser}
+          {selectedUser}
         </DialogTitle>
         <DialogContent>
           <Box

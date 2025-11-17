@@ -295,7 +295,7 @@ const DiscountList = () => {
             <TableHead sx={{ backgroundColor: "#1976d2" }}>
               <TableRow>
                 {[
-                  "ID",
+                  "MÃ GIẢM GIÁ",
                   "TÊN MÃ GIẢM GIÁ",
                   "MÃ CODE",
                   "PHẦN TRĂM GIẢM",

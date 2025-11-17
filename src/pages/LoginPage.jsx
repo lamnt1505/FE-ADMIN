@@ -49,7 +49,6 @@ export default function LoginPage() {
       const data = res.data;
       console.log("Login response:", data);
 
-      // ❌ Captcha sai
       if (data.isCaptchaValid === false) {
         setError("Captcha không hợp lệ. Vui lòng thử lại.");
         refreshCaptcha();
@@ -57,7 +56,6 @@ export default function LoginPage() {
         return;
       }
 
-      // ✅ Check đúng trường: data.status hoặc data.success
       if (data.status || data.success) {
         localStorage.setItem("accountName", accountName);
         let role = "USER";
@@ -83,11 +81,10 @@ export default function LoginPage() {
 
         localStorage.setItem("accountId", data.accountID);
 
-        // ✅ Điều hướng đúng role
         if (role === "ADMIN" || role === "EMPLOYEE") {
           navigate("/dashboard", { replace: true });
         } else {
-          navigate("/home", { replace: true });
+          navigate("/products", { replace: true });
         }
       } else {
         setError(data.message || "Đăng nhập thất bại");

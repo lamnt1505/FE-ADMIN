@@ -59,10 +59,12 @@ const Products = () => {
     setSelectedImage(img);
     setOpenImage(true);
   };
+
   const handleCloseImage = () => {
     setOpenImage(false);
     setSelectedImage(null);
   };
+
   const handleOpenUpdate = async (id) => {
     try {
       const [productRes, categoryRes, trademarkRes] = await Promise.all([
@@ -95,11 +97,13 @@ const Products = () => {
       toast.error("Không thể tải dữ liệu sản phẩm!");
     }
   };
+
   const handleCloseUpdate = () => {
     setOpenUpdate(false);
     setUpdateId(null);
     setUpdateName("");
   };
+
   const handleConfirmUpdate = async () => {
     try {
       let imageBase64 = null;
@@ -132,7 +136,8 @@ const Products = () => {
 
       toast.success("✅ Cập nhật sản phẩm thành công!");
       handleCloseUpdate();
-      fetchProducts(page, size);
+
+      setTimeout(() => window.location.reload(), 1000);
     } catch (err) {
       console.error("Lỗi khi cập nhật:", err);
       if (err.response)
@@ -140,11 +145,13 @@ const Products = () => {
       else toast.error("🚫 Không thể kết nối đến server!");
     }
   };
+
   const handleButtonClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
+
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -161,12 +168,15 @@ const Products = () => {
         }
       );
       toast.success(res.data.message || "Tải file thành công!");
-      fetchProducts(page, size);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (err) {
       console.error("Lỗi upload:", err);
       toast.error("Có lỗi khi tải file!");
     }
   };
+
   const handleOpenDetail = async (id) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/v1/product/${id}/get`);
@@ -177,18 +187,22 @@ const Products = () => {
       toast.error("Không thể tải chi tiết sản phẩm!");
     }
   };
+  
   const handleClose = () => {
     setOpen(false);
     setSelectedProduct(null);
   };
+
   const handleOpenDelete = (id) => {
     setDeleteId(id);
     setOpenDelete(true);
   };
+
   const handleCloseDelete = () => {
     setOpenDelete(false);
     setDeleteId(null);
   };
+
   const handleDownloadTemplate = async () => {
     try {
       const response = await axios.get(
@@ -209,17 +223,22 @@ const Products = () => {
       toast.error("Không thể tải file mẫu!");
     }
   };
+
   const handleConfirmDelete = async () => {
     try {
       await axios.delete(`${API_BASE_URL}/api/v1/product/delete/${deleteId}`);
       toast.success("Xóa sản phẩm thành công!");
       handleCloseDelete();
-      fetchProducts(page, size);
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (err) {
       console.error("Lỗi khi xóa sản phẩm:", err);
       toast.error("Có lỗi xảy ra khi xóa sản phẩm!");
     }
   };
+
   const fetchProducts = async (page, size) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/v1/product/paginated`, {
@@ -233,9 +252,11 @@ const Products = () => {
       toast.error("Không thể tải danh sách sản phẩm!");
     }
   };
+
   useEffect(() => {
     fetchProducts(page, size);
   }, [page, size]);
+
   useEffect(() => {
     axios
       .get(`${API_BASE_URL}/api/v1/product/getall`)
@@ -246,6 +267,7 @@ const Products = () => {
         toast.error("Không thể tải danh sách sản phẩm!");
       });
   }, []);
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -352,7 +374,7 @@ const Products = () => {
                     variant="square"
                     src={
                       product.image
-                        ? product.image // ⚡ lấy link Cloudinary trực tiếp
+                        ? product.image 
                         : product.imageBase64
                         ? `data:image/jpeg;base64,${product.imageBase64}`
                         : ""

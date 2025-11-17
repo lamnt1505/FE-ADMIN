@@ -17,7 +17,7 @@ export default function AddProduct() {
     price: "",
     categoryID: "",
     tradeID: "",
-    image: "", // ⚡ thêm trường image base64
+    image: "",
   });
   const [preview, setPreview] = useState("");
   const [categories, setCategories] = useState([]);
@@ -41,8 +41,6 @@ export default function AddProduct() {
       [e.target.name]: e.target.value,
     });
   };
-
-  // ⚡ Khi chọn ảnh → convert sang base64
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -74,7 +72,6 @@ export default function AddProduct() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ⚡ Gửi JSON
   const handleSubmit = async () => {
     if (!validateForm()) {
       toast.warning("Vui lòng kiểm tra lại các trường bắt buộc!", {

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -20,6 +21,7 @@ import API_BASE_URL from "../config/config.js";
 
 const CreateDiscountPage = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     discountName: "",
     discountPercent: "",
@@ -80,13 +82,28 @@ const CreateDiscountPage = () => {
       if (res.data?.discountCode !== undefined) {
         setDiscountCode(res.data.discountCode);
         setDialogOpen(true);
-        toast.success("TẠO MÃ GIẢM GIÁ THÀNH CÔNG!");
+        toast.success(
+          "Tạo mã giảm giá thành công! Vui lòng copy mã. Sau 30 giây sẽ chuyển về trang danh sách."
+        );
+
+        setTimeout(async () => {
+          try {
+            await navigator.clipboard.writeText(res.data.discountCode);
+            setSnackbarOpen(true);
+          } catch {
+            console.log("Không thể auto copy");
+          }
+        }, 1000);
+
+        setTimeout(() => {
+          navigate("/discountslist"); 
+        }, 30000);
       } else {
         toast.error("TẠO MÃ THẤT BẠI!");
       }
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message ||"CÓ LỖI XẢY RA KHI GỌI API!");
+      toast.error(err.response?.data?.message || "CÓ LỖI XẢY RA KHI GỌI API!");
     }
   };
 

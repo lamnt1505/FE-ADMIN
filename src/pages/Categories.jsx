@@ -246,7 +246,7 @@ useEffect(() => {
           <TableHead sx={{ backgroundColor: "#2563EB" }}>
             <TableRow>
               <TableCell sx={{ color: "white", fontSize: "1.2rem" }}>
-                ID
+                MÃ LOẠI
               </TableCell>
               <TableCell sx={{ color: "white", fontSize: "1.2rem" }}>
                 TÊN LOẠI

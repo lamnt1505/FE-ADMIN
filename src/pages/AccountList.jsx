@@ -20,12 +20,12 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
 const AccountList = () => {
   const [accounts, setAccounts] = useState([]);
   const accountData = JSON.parse(localStorage.getItem("account"));
   const currentRole = accountData?.role?.toUpperCase();
   const [pendingRoles, setPendingRoles] = useState({});
+
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -95,41 +95,46 @@ const AccountList = () => {
         DANH SÁCH TÀI KHOẢN
       </Typography>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer component={Paper}
+                sx={{
+                  borderRadius: 2,
+                  boxShadow: 3,
+                  overflow: "hidden",
+                }}>
+        <Table sx={{ minWidth: 900 }}>
           <TableHead>
-            <TableRow>
-              <TableCell>
-                <b>ID</b>
+            <TableRow sx={{ backgroundColor: "#2563EB" }}>
+              <TableCell sx={{ color: "white", fontSize: "1.1rem" }}>
+                <b>MÃ NGƯỜI DÙNG</b>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.1rem" }}>
                 <b>ẢNH</b>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.1rem" }}>
                 <b>TÊN TÀI KHOẢN</b>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.1rem" }}>
                 <b>USERNAME</b>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.1rem" }}>
                 <b>E-MAIL</b>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.1rem" }}>
                 <b>PHONE</b>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.1rem" }}>
                 <b>ĐỊA CHỈ</b>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.1rem" }}>
                 <b>NGÀY SINH</b>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.1rem" }}>
                 <b>ROLE</b>
               </TableCell>
-              <TableCell></TableCell>
-              <TableCell>
+              <TableCell sx={{ color: "white", fontSize: "1.1rem" }}>
                 <b>PHÂN QUYỀN</b>
               </TableCell>
+              <TableCell></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
