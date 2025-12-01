@@ -26,7 +26,6 @@ const LowStockNotification = () => {
 
   useEffect(() => {
     fetchLowStockProducts();
-    // Tự động refresh mỗi 5 phút
     const interval = setInterval(fetchLowStockProducts, 0.5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
@@ -80,7 +79,6 @@ const LowStockNotification = () => {
         </Alert>
       )}
 
-      {/* Icon floating button */}
       <IconButton
         onClick={() => setShowDrawer(true)}
         sx={{
@@ -111,7 +109,6 @@ const LowStockNotification = () => {
         </Badge>
       </IconButton>
 
-      {/* Drawer hiển thị danh sách */}
       <Drawer
         anchor="right"
         open={showDrawer}
@@ -175,7 +172,7 @@ const LowStockNotification = () => {
 
                 {item.quantity <= 2 && (
                   <Alert severity="error" sx={{ mt: 1, width: "100%" }}>
-                    🚨 GẤP: Số lượng rất thấp!
+                    GẤP: Sắp hết hàng!
                   </Alert>
                 )}
               </ListItem>

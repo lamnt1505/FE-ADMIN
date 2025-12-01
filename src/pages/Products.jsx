@@ -1,25 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { Box, Button } from "@mui/material";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  MenuItem,
-  TableContainer,
-  TableHead,
-  Select,
-  TableRow,
-  Paper,
-  Typography,
-  Avatar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
+  Table, TableBody, TableCell,
+  MenuItem, TableContainer, TableHead,
+  Select, TableRow, Paper,
+  Typography, Avatar, Dialog,
+  DialogTitle, DialogContent, DialogActions,
+  TextField, FormControl, InputLabel, Box, Button,
+  Pagination, Stack
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -27,7 +15,6 @@ import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Pagination } from "@mui/material";
 import API_BASE_URL from "../config/config.js";
 
 const Products = () => {
@@ -51,9 +38,12 @@ const Products = () => {
   const [trademarks, setTrademarks] = useState([]);
   const [openImage, setOpenImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(5);
+  
+  // Pagination states
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
 
   const handleOpenImage = (img) => {
     setSelectedImage(img);
@@ -93,7 +83,6 @@ const Products = () => {
 
       setOpenUpdate(true);
     } catch (err) {
-      console.error("Lỗi khi load dữ liệu:", err);
       toast.error("Không thể tải dữ liệu sản phẩm!");
     }
   };
@@ -126,7 +115,7 @@ const Products = () => {
         image: imageBase64,
       };
 
-      const res = await axios.put(
+      await axios.put(
         `${API_BASE_URL}/api/v1/product/update/${updateId}`,
         payload,
         {
@@ -136,8 +125,7 @@ const Products = () => {
 
       toast.success("✅ Cập nhật sản phẩm thành công!");
       handleCloseUpdate();
-
-      setTimeout(() => window.location.reload(), 1000);
+      fetchProducts(page - 1, pageSize);
     } catch (err) {
       console.error("Lỗi khi cập nhật:", err);
       if (err.response)
@@ -168,9 +156,8 @@ const Products = () => {
         }
       );
       toast.success(res.data.message || "Tải file thành công!");
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      setPage(1);
+      fetchProducts(0, pageSize);
     } catch (err) {
       console.error("Lỗi upload:", err);
       toast.error("Có lỗi khi tải file!");
@@ -187,7 +174,7 @@ const Products = () => {
       toast.error("Không thể tải chi tiết sản phẩm!");
     }
   };
-  
+
   const handleClose = () => {
     setOpen(false);
     setSelectedProduct(null);
@@ -219,7 +206,6 @@ const Products = () => {
       document.body.removeChild(link);
       toast.success("Tải file mẫu thành công!");
     } catch (error) {
-      console.error("Lỗi khi tải file:", error);
       toast.error("Không thể tải file mẫu!");
     }
   };
@@ -229,44 +215,31 @@ const Products = () => {
       await axios.delete(`${API_BASE_URL}/api/v1/product/delete/${deleteId}`);
       toast.success("Xóa sản phẩm thành công!");
       handleCloseDelete();
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      setPage(1);
+      fetchProducts(0, pageSize);
     } catch (err) {
       console.error("Lỗi khi xóa sản phẩm:", err);
       toast.error("Có lỗi xảy ra khi xóa sản phẩm!");
     }
   };
 
-  const fetchProducts = async (page, size) => {
+  const fetchProducts = async (pageNum, pageSizeNum) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/v1/product/paginated`, {
-        params: { page, size, sort: ["productID", "asc"] },
+        params: { page: pageNum, size: pageSizeNum, sort: ["productID", "asc"] },
         withCredentials: true,
       });
-      console.log(res.data);
       setProducts(res.data.content);
       setTotalPages(res.data.totalPages);
+      setTotalProducts(res.data.totalElements);
     } catch (err) {
       toast.error("Không thể tải danh sách sản phẩm!");
     }
   };
 
   useEffect(() => {
-    fetchProducts(page, size);
-  }, [page, size]);
-
-  useEffect(() => {
-    axios
-      .get(`${API_BASE_URL}/api/v1/product/getall`)
-      .then((response) => {
-        setProducts(response.data);
-      })
-      .catch((error) => {
-        toast.error("Không thể tải danh sách sản phẩm!");
-      });
-  }, []);
+    fetchProducts(page - 1, pageSize);
+  }, [page, pageSize]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -276,7 +249,6 @@ const Products = () => {
         );
         setCategories(res.data);
       } catch (err) {
-        console.error("Lỗi khi load categories:", err);
         toast.error("Không thể tải danh sách loại sản phẩm!");
       }
     };
@@ -296,11 +268,21 @@ const Products = () => {
   }, []);
 
   return (
-    <Box sx={{ p: 2, m: 0, width: "100%" }}>
-      <Typography variant="h5" gutterBottom sx={{ px: 2, pt: 2, pb: 1 }}>
+    <Box sx={{ p: 3, mt: 10 }}>
+      <Typography
+        variant="h5"
+        gutterBottom
+        sx={{
+          fontWeight: "bold",
+          color: "#1976d2",
+          mb: 3,
+          textTransform: "uppercase",
+        }}
+      >
         Danh sách sản phẩm
       </Typography>
-      <Box sx={{ display: "flex", gap: 3, mb: 2 }}>
+
+      <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap">
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -332,13 +314,37 @@ const Products = () => {
           ref={fileInputRef}
           onChange={handleFileChange}
         />
-      </Box>
+
+        {/* Page Size Selector */}
+        <FormControl sx={{ minWidth: 120 }}>
+          <InputLabel>Hiển thị</InputLabel>
+          <Select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(e.target.value);
+              setPage(1);
+            }}
+            label="Hiển thị"
+          >
+            <MenuItem value={5}>5 trên trang</MenuItem>
+            <MenuItem value={10}>10 trên trang</MenuItem>
+            <MenuItem value={15}>15 trên trang</MenuItem>
+            <MenuItem value={20}>20 trên trang</MenuItem>
+          </Select>
+        </FormControl>
+
+        {/* Total info */}
+        <Typography sx={{ ml: "auto" }}>
+          Tổng: {totalProducts} | Trang: {page}/{totalPages}
+        </Typography>
+      </Stack>
+
       <TableContainer
         component={Paper}
         sx={{ width: "100%", boxShadow: "none", borderRadius: 0 }}
       >
-        <Table>
-          <TableHead sx={{ backgroundColor: "#2563EB" }}>
+        <Table sx={{ minWidth: 900 }}>
+          <TableHead sx={{ backgroundColor: "#2564eb" }}>
             <TableRow>
               <TableCell sx={{ color: "white", fontSize: "1.2rem" }}>
                 ẢNH
@@ -374,18 +380,14 @@ const Products = () => {
                     variant="square"
                     src={
                       product.image
-                        ? product.image 
+                        ? product.image
                         : product.imageBase64
                         ? `data:image/jpeg;base64,${product.imageBase64}`
                         : ""
                     }
                     alt={product.name}
-                    sx={{ width: 80, height: 80 }}
-                    onClick={() =>
-                      handleOpenImage(
-                        product.image
-                      )
-                    }
+                    sx={{ width: 80, height: 80, cursor: "pointer" }}
+                    onClick={() => handleOpenImage(product.image)}
                   />
                 </TableCell>
                 <TableCell>{product.name}</TableCell>
@@ -396,6 +398,14 @@ const Products = () => {
                 <TableCell>{product.description}</TableCell>
                 <TableCell>
                   <Box sx={{ display: "flex", gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      color="info"
+                      size="small"
+                      onClick={() => handleOpenDetail(product.id)}
+                    >
+                      Chi tiết
+                    </Button>
                     <Button
                       variant="contained"
                       color="primary"
@@ -412,14 +422,6 @@ const Products = () => {
                     >
                       Xóa
                     </Button>
-                    <Button
-                      variant="outlined"
-                      color="info"
-                      size="small"
-                      onClick={() => handleOpenDetail(product.id)}
-                    >
-                      Chi tiết
-                    </Button>
                   </Box>
                 </TableCell>
               </TableRow>
@@ -427,14 +429,21 @@ const Products = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Pagination */}
       <Box display="flex" justifyContent="center" my={2}>
         <Pagination
           count={totalPages}
-          page={page + 1}
-          onChange={(e, value) => setPage(value - 1)}
+          page={page}
+          onChange={(e, value) => setPage(value)}
           color="primary"
+          size="large"
+          showFirstButton
+          showLastButton
         />
       </Box>
+
+      {/* Dialogs - Chi tiết */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Chi tiết sản phẩm</DialogTitle>
         <DialogContent dividers>
@@ -477,6 +486,8 @@ const Products = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Dialog - Xóa */}
       <Dialog open={openDelete} onClose={handleCloseDelete}>
         <DialogTitle>Xác nhận xóa</DialogTitle>
         <DialogContent>
@@ -495,6 +506,8 @@ const Products = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Dialog - Xem ảnh */}
       <Dialog open={openImage} onClose={handleCloseImage} maxWidth="md">
         <DialogContent>
           {selectedImage && (
@@ -506,6 +519,8 @@ const Products = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog - Cập nhật */}
       <Dialog
         open={openUpdate}
         onClose={handleCloseUpdate}

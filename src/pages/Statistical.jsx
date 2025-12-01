@@ -58,7 +58,6 @@ const StatisticsPage = () => {
         );
         setDiscountStats(res.data);
       } catch (err) {
-        console.error(err);
         toast.error("Lỗi khi tải thống kê mã giảm giá!");
       }
     };
@@ -80,7 +79,6 @@ const StatisticsPage = () => {
         setMonthStats(monthRes.data);
         setQuarterStats(quarterRes.data);
       } catch (err) {
-        console.error("Lỗi khi load dữ liệu:", err);
         toast.error("Không thể load dữ liệu. Vui lòng thử lại!");
       }
     };
@@ -104,7 +102,6 @@ const StatisticsPage = () => {
           setRole("UNKNOWN");
         }
       } catch (err) {
-        console.error("Lỗi parse account:", err);
       }
     }
   }, []);
@@ -135,7 +132,6 @@ const StatisticsPage = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error(err);
       alert("❌ Lỗi khi xuất Excel theo quý");
     }
   };
@@ -159,7 +155,6 @@ const StatisticsPage = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error(err);
       alert("❌ Lỗi khi xuất PDF theo quý");
     }
   };
@@ -191,7 +186,6 @@ const StatisticsPage = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error(err);
       alert("❌ Lỗi khi xuất Excel");
     }
   };
@@ -215,7 +209,6 @@ const StatisticsPage = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error(err);
       alert("❌ Lỗi khi xuất PDF");
     }
   };
@@ -239,7 +232,6 @@ const StatisticsPage = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error(err);
       alert("❌ Lỗi khi xuất Excel theo năm");
     }
   };
@@ -263,7 +255,6 @@ const StatisticsPage = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error(err);
       alert("❌ Lỗi khi xuất PDF theo năm");
     }
   };
@@ -287,7 +278,6 @@ const StatisticsPage = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error(err);
       alert("❌ Lỗi khi xuất Excel theo tháng");
     }
   };
@@ -311,7 +301,6 @@ const StatisticsPage = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error(err);
       alert("❌ Lỗi khi xuất PDF theo tháng");
     }
   };
@@ -347,8 +336,16 @@ const StatisticsPage = () => {
   const renderNumber = (num) => new Intl.NumberFormat().format(num);
 
   return (
-    <Box sx={{ width: "100%", p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+    <Box sx={{ p: 3, mt: 10 }}>
+      <Typography          
+          variant="h5"
+          gutterBottom
+          sx={{
+            fontWeight: "bold",
+            color: "#1976d2",
+            mb: 1,
+            textTransform: "uppercase",
+          }}>
         THỐNG KÊ ĐƠN HÀNG
       </Typography>
       <Tabs

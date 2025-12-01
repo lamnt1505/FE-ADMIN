@@ -39,6 +39,7 @@ const Trademarks = () => {
   useEffect(() => {
     fetchTrademarks();
   }, []);
+  
   const fetchTrademarks = async () => {
     try {
       const res = await axios.get(
@@ -46,14 +47,15 @@ const Trademarks = () => {
       );
       setTrademarks(res.data);
     } catch (err) {
-      console.error("Lỗi khi tải trademarks:", err);
     }
   };
   const handleOpenAdd = () => setOpenAdd(true);
+
   const handleCloseAdd = () => {
     setOpenAdd(false);
     setNewName("");
   };
+
   const handleConfirmAdd = async () => {
     try {
       await axios.post(`${API_BASE_URL}/api/trademark/add`, {
@@ -63,14 +65,12 @@ const Trademarks = () => {
       handleCloseAdd();
       fetchTrademarks();
     } catch (err) {
-      console.error("Lỗi khi thêm trademark:", err);
       if (err.response) {
         const { status, data } = err.response;
-
         if (status === 409 && data.error) {
-          toast.error(`⚠️ ${data.error}`); // lỗi trùng thương hiệu
+          toast.error(`⚠️ ${data.error}`);
         } else if (status === 400 && data.error) {
-          toast.error(`⚠️ ${data.error}`); // lỗi dữ liệu không hợp lệ
+          toast.error(`⚠️ ${data.error}`); 
         } else {
           toast.error("❌ Có lỗi xảy ra khi thêm thương hiệu!");
         }
@@ -79,16 +79,19 @@ const Trademarks = () => {
       }
     }
   };
+
   const handleOpenUpdate = (trademark) => {
     setUpdateId(trademark.tradeID);
     setUpdateName(trademark.trademarkName);
     setOpenUpdate(true);
   };
+
   const handleCloseUpdate = () => {
     setOpenUpdate(false);
     setUpdateId(null);
     setUpdateName("");
   };
+
   const handleConfirmUpdate = async () => {
     if (!updateId) {
       toast.warning("Không có ID để cập nhật!");
@@ -106,18 +109,20 @@ const Trademarks = () => {
       handleCloseUpdate();
       fetchTrademarks();
     } catch (err) {
-      console.error("Lỗi update trademark:", err);
       toast.error("Có lỗi xảy ra khi cập nhật!");
     }
   };
+
   const handleOpenDelete = (id) => {
     setDeleteId(id);
     setOpenDelete(true);
   };
+
   const handleCloseDelete = () => {
     setOpenDelete(false);
     setDeleteId(null);
   };
+
   const handleConfirmDelete = async () => {
     try {
       await axios.delete(
@@ -127,13 +132,13 @@ const Trademarks = () => {
       handleCloseDelete();
       fetchTrademarks();
     } catch (err) {
-      console.error("Lỗi khi xóa trademark:", err);
       toast.error("Có lỗi xảy ra khi xóa!");
     }
   };
   const handleButtonClick = () => {
     if (fileInputRef.current) fileInputRef.current.click();
   };
+
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -150,10 +155,10 @@ const Trademarks = () => {
       toast.success(res.data.message || "Import thành công!");
       fetchTrademarks();
     } catch (err) {
-      console.error("Lỗi import:", err);
       toast.error("Import thất bại!");
     }
   };
+
   const handleDownloadTemplate = async () => {
     try {
       const response = await axios.get(
@@ -169,14 +174,20 @@ const Trademarks = () => {
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error("Lỗi khi tải file:", error);
       toast.error("Không thể tải file mẫu!");
     }
   };
 
   return (
-    <Box sx={{ p: 2, m: 0, width: "100%" }}>
-      <Typography variant="h5" gutterBottom sx={{ px: 2, pt: 2, pb: 1 }}>
+    <Box sx={{ p: 3, mt: 10 }}>
+      <Typography variant="h5"
+          gutterBottom
+          sx={{
+            fontWeight: "bold",
+            color: "#1976d2",
+            mb: 3,
+            textTransform: "uppercase",
+          }}>
         DANH SÁCH THƯƠNG HIỆU (Trademark)
       </Typography>
 
@@ -222,7 +233,7 @@ const Trademarks = () => {
           <TableHead sx={{ backgroundColor: "#2563EB" }}>
             <TableRow>
               <TableCell sx={{ color: "white", fontSize: "1.2rem" }}>
-                ID
+                MÃ THƯƠNG HIỆU
               </TableCell>
               <TableCell sx={{ color: "white", fontSize: "1.2rem" }}>
                 TÊN THƯƠNG HIỆU

@@ -28,9 +28,9 @@ const CreateDiscountPage = () => {
     dateStart: "",
     dateFinish: "",
   });
-
   const [errors, setErrors] = useState({});
   const [dialogOpen, setDialogOpen] = useState(false);
+
   const [discountCode, setDiscountCode] = useState("");
 
   const handleChange = (e) => {
@@ -59,7 +59,6 @@ const CreateDiscountPage = () => {
       if (finish < start)
         newErr.dateFinish = "NGÀY KẾT THÚC PHẢI ≥ NGÀY BẮT ĐẦU";
     }
-
     setErrors(newErr);
     return Object.keys(newErr).length === 0;
   };
@@ -102,7 +101,7 @@ const CreateDiscountPage = () => {
         toast.error("TẠO MÃ THẤT BẠI!");
       }
     } catch (err) {
-      console.error(err);
+      //console.error(err);
       toast.error(err.response?.data?.message || "CÓ LỖI XẢY RA KHI GỌI API!");
     }
   };
@@ -132,11 +131,13 @@ const CreateDiscountPage = () => {
     <>
       <Box
         sx={{
-          minHeight: "100vh",
+          pl: "240px",
+          mt: "64px",
+          p: 3,
           display: "flex",
           justifyContent: "center",
-          alignItems: "flex-start",
-          pt: 12,
+          alignItems: "center",
+          minHeight: "calc(100vh - 64px)",
           backgroundColor: "#f5f5f5",
         }}
       >
@@ -150,7 +151,11 @@ const CreateDiscountPage = () => {
             borderRadius: 2,
           }}
         >
-          <Typography variant="h5" gutterBottom>
+          <Typography             variant="h5"
+            fontWeight="bold"
+            textAlign="center"
+            color="primary"
+            gutterBottom>
             TẠO MÃ GIẢM GIÁ MỚI
           </Typography>
 

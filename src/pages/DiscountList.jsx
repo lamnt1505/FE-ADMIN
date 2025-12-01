@@ -155,8 +155,20 @@ const DiscountList = () => {
       const res = await axios.put(
         `${API_BASE_URL}/api/v1/discounts/${id}/toggle`
       );
+      
       toast.success(res.data.message);
+      setTimeout(async () => {
+        
+        try {
+          const latestRes = await axios.get(`${API_BASE_URL}/api/v1/discounts/latest`);
+          window.dispatchEvent(new Event("discountUpdated"));
+        } catch (err) {
+          console.error("Lỗi fetch latest:", err);
+        }
+      }, 500);
+      
       fetchDiscounts();
+
     } catch (err) {
       console.error("Lỗi khi thay đổi trạng thái:", err);
       toast.error("Không thể thay đổi trạng thái!");

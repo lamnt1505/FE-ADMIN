@@ -19,7 +19,7 @@ const Layout = () => {
           flexGrow: 1,
           bgcolor: "#f8f9fa",
           minHeight: "100vh",
-          ml: `${drawerWidth}px`,
+          ml: 0,
           transition: "0.3s",
         }}
       >

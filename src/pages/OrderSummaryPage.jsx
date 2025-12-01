@@ -43,69 +43,78 @@ const OrderSummaryPage = () => {
 
   useEffect(() => {
     const interval = setInterval(async () => {
-      console.log("Kiểm tra và cập nhật trạng thái đơn hàng tự động");
       try {
         const res = await axios.get(
           `${API_BASE_URL}/dossier-statistic/summary`
         );
         const currentOrders = res.data;
 
-        currentOrders.forEach(async (order) => {
-          if (order.status === "Hoàn thành" || order.status === "Đã huỷ") {
-            console.log(`=> Bỏ qua đơn #${order.orderId} (${order.status})`);
-            return;
-          }
-          let nextStatus = "";
-          switch (order.status) {
-            case "Chờ duyệt":
-              nextStatus = "Đang xử lý";
-              break;
-            case "Đang xử lý":
-              nextStatus = "Đang giao hàng";
-              break;
-            case "Đang giao hàng":
-              nextStatus = "Hoàn thành";
-              break;
-            default:
-              nextStatus = order.status;
-          }
-          if (nextStatus === order.status) return;
-          try {
-            const updateRes = await axios.post(
-              `${API_BASE_URL}/dossier-statistic/--update-status`,
-              null,
-              { params: { orderid: order.orderId, status: nextStatus } }
-            );
-
-            const result = updateRes.data;
-
-            if (result === "SUCCESS") {
-              toast.info(
-                `🔄 Đơn hàng #${order.orderId} tự động chuyển sang "${nextStatus}"`,
-                { position: "bottom-right", autoClose: 2500 }
-              );
-              console.log(`✅ Auto cập nhật: ${order.orderId} → ${nextStatus}`);
-            } else if (result === "INSUFFICIENT_QUANTITY") {
-              toast.warning(
-                `⚠️ Đơn #${order.orderId} không đủ hàng, không thể tự cập nhật!`,
-                { position: "bottom-right", autoClose: 3000 }
-              );
-            } else if (result === "STORAGE_NOT_FOUND") {
-              toast.error(
-                `❌ Đơn #${order.orderId}: sản phẩm không tồn tại trong kho!`,
-                { position: "bottom-right", autoClose: 3000 }
-              );
-            } else {
-              console.warn(`⚠️ Auto update thất bại cho đơn #${order.orderId}`);
+        await Promise.all(
+          currentOrders.map(async (order) => {
+            if (
+              order.status === "Hoàn thành" ||
+              order.status === "Đã huỷ" ||
+              order.status === "Thanh toán thất bại"
+            ) {
+              return;
             }
-          } catch (err) {
-            console.error("⚠️ Lỗi auto cập nhật trạng thái:", err);
-          }
-        });
+
+            let nextStatus = "";
+            switch (order.status) {
+              case "Chờ duyệt":
+                nextStatus = "Đang xử lý";
+                break;
+              case "Đang xử lý":
+                nextStatus = "Đang giao hàng";
+                break;
+              case "Đang giao hàng":
+                nextStatus = "Hoàn thành";
+                break;
+              default:
+                nextStatus = order.status;
+            }
+
+            if (nextStatus === order.status) return;
+
+            try {
+              const updateRes = await axios.post(
+                `${API_BASE_URL}/dossier-statistic/--update-status`,
+                null,
+                { params: { orderid: order.orderId, status: nextStatus } }
+              );
+
+              const result = updateRes.data;
+
+              if (result === "SUCCESS") {
+                toast.info(
+                  `🔄 Đơn hàng #${order.orderId} tự động chuyển sang "${nextStatus}"`,
+                  { position: "bottom-right", autoClose: 2500 }
+                );
+              } else if (result === "INSUFFICIENT_QUANTITY") {
+                toast.warning(
+                  `⚠️ Đơn #${order.orderId} không đủ hàng, không thể tự cập nhật!`,
+                  { position: "bottom-right", autoClose: 3000 }
+                );
+              } else if (result === "STORAGE_NOT_FOUND") {
+                toast.error(
+                  `❌ Đơn #${order.orderId}: sản phẩm không tồn tại trong kho!`,
+                  { position: "bottom-right", autoClose: 3000 }
+                );
+              } else {
+                console.warn(
+                  `⚠️ Auto update thất bại cho đơn #${order.orderId}`
+                );
+              }
+            } catch (err) {
+              console.error(`⚠️ Lỗi auto cập nhật đơn #${order.orderId}:`, err);
+            }
+          })
+        );
       } catch (err) {
         console.error("🚨 Lỗi khi fetch danh sách đơn hàng:", err);
       }
     }, 10 * 60 * 1000);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -159,20 +168,15 @@ const OrderSummaryPage = () => {
         toast.warning("Có lỗi xảy ra khi cập nhật trạng thái!");
       }
     } catch (err) {
-      console.error(err);
       toast.error("Cập nhật trạng thái thất bại!");
     }
   };
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/dossier-statistic/summary`
-      );
+      const res = await axios.get(`${API_BASE_URL}/dossier-statistic/summary`);
       setOrders(res.data);
-    } catch (err) {
-      console.error("Lỗi khi lấy danh sách đơn hàng:", err);
-    }
+    } catch (err) {}
   };
 
   const handleViewDetails = async (orderId) => {
@@ -181,23 +185,18 @@ const OrderSummaryPage = () => {
       setOrderDetails(res.data.oldOrders || []);
       setOpenDetailDialog(true);
     } catch (err) {
-      console.error("Lỗi khi lấy chi tiết đơn hàng:", err);
       alert("Không thể lấy chi tiết đơn hàng!");
     }
   };
 
   const handleViewAddress = async (orderId) => {
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/orders/address/${orderId}`
-      );
+      const res = await fetch(`${API_BASE_URL}/orders/address/${orderId}`);
       if (!res.ok) throw new Error("Lỗi khi lấy địa chỉ");
       const data = await res.json();
       setAddressInfo(data);
       setOpenAddressDialog(true);
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error) {}
   };
 
   const paginatedOrders = orders.slice(
@@ -222,6 +221,8 @@ const OrderSummaryPage = () => {
         py: 4,
         backgroundColor: "#f9fafc",
         minHeight: "100vh",
+        p: 3,
+        mt: 10,
       }}
     >
       <Typography
@@ -230,11 +231,11 @@ const OrderSummaryPage = () => {
         sx={{
           fontWeight: "bold",
           color: "#1976d2",
-          mb: 3,
+          mb: 1,
           textTransform: "uppercase",
         }}
       >
-        Quản lý đơn hàng
+        DANH SÁCH ĐƠN HÀNG
       </Typography>
 
       <TableContainer
@@ -345,19 +346,38 @@ const OrderSummaryPage = () => {
                         flexWrap: "wrap",
                       }}
                     >
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        onClick={() => handleOpenDialog(order)}
-                        sx={{
-                          textTransform: "none",
-                          borderRadius: "20px",
-                          px: 2,
-                        }}
-                      >
-                        Duyệt
-                      </Button>
+                      {![
+                        "Hoàn thành",
+                        "Đã Hủy",
+                        "THANH TOÁN THẤT BẠI",
+                      ].includes(order.status) ? (
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          size="small"
+                          onClick={() => handleOpenDialog(order)}
+                          sx={{
+                            textTransform: "none",
+                            borderRadius: "20px",
+                            px: 2,
+                          }}
+                        >
+                          Duyệt
+                        </Button>
+                      ) : (
+                        // ✅ Hiển thị text khi đơn hàng đã kết thúc
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "text.secondary",
+                            fontStyle: "italic",
+                            py: 1,
+                          }}
+                        >
+                          Đã xử lý
+                        </Typography>
+                      )}
+
                       <Button
                         variant="outlined"
                         color="secondary"

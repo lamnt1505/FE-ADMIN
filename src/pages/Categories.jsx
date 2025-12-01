@@ -43,17 +43,16 @@ const Categories = () => {
   const [updateId, setUpdateId] = useState(null);
   const [updateName, setUpdateName] = useState("");
 
-useEffect(() => {
-  if (location.state?.msg) {
-    toast.error(location.state.msg, {
-      position: "top-right",
-      autoClose: 3000,
-    });
-    
-    window.history.replaceState({}, document.title);
-  }
-}, [location.state]);
+  useEffect(() => {
+    if (location.state?.msg) {
+      toast.error(location.state.msg, {
+        position: "top-right",
+        autoClose: 3000,
+      });
 
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     fetchCategories();
@@ -61,16 +60,13 @@ useEffect(() => {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/v1/category/paginated`,
-        {
-          params: {
-            page,
-            size,
-            sort: ["categoryID", "asc"],
-          },
-        }
-      );
+      const res = await axios.get(`${API_BASE_URL}/api/v1/category/paginated`, {
+        params: {
+          page,
+          size,
+          sort: ["categoryID", "asc"],
+        },
+      });
 
       setCategories(res.data.content);
       setTotalPages(res.data.totalPages);
@@ -85,6 +81,7 @@ useEffect(() => {
     setOpenAdd(false);
     setNewName("");
   };
+
   const handleConfirmAdd = async () => {
     try {
       await axios.post(`${API_BASE_URL}/api/v1/category/add`, {
@@ -101,24 +98,24 @@ useEffect(() => {
       }
     }
   };
+
   const handleOpenUpdate = (cat) => {
     setUpdateId(cat.id);
     setUpdateName(cat.name);
     setOpenUpdate(true);
   };
+
   const handleCloseUpdate = () => {
     setOpenUpdate(false);
     setUpdateId(null);
     setUpdateName("");
   };
+
   const handleConfirmUpdate = async () => {
     try {
-      await axios.put(
-        `${API_BASE_URL}/api/v1/category/${updateId}/update`,
-        {
-          name: updateName,
-        }
-      );
+      await axios.put(`${API_BASE_URL}/api/v1/category/${updateId}/update`, {
+        name: updateName,
+      });
       toast.success("Cập nhật thành công!");
       handleCloseUpdate();
       fetchCategories();
@@ -140,9 +137,7 @@ useEffect(() => {
 
   const handleConfirmDelete = async () => {
     try {
-      await axios.delete(
-        `${API_BASE_URL}/api/v1/category/${deleteId}/delete`
-      );
+      await axios.delete(`${API_BASE_URL}/api/v1/category/${deleteId}/delete`);
       toast.success("Xóa thành công!");
       handleCloseDelete();
       fetchCategories();
@@ -165,14 +160,13 @@ useEffect(() => {
 
     try {
       const res = await axios.post(
-         `${API_BASE_URL}/api/v1/category/import`,
+        `${API_BASE_URL}/api/v1/category/import`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
       toast.success(res.data.message || "Import thành công!");
       fetchCategories();
     } catch (err) {
-      console.error("Lỗi import:", err);
       toast.error("Import thất bại!");
     }
   };
@@ -180,7 +174,7 @@ useEffect(() => {
   const handleDownloadTemplate = async () => {
     try {
       const response = await axios.get(
-         `${API_BASE_URL}/api/v1/category/download`,
+        `${API_BASE_URL}/api/v1/category/download`,
         { responseType: "blob" }
       );
 
@@ -193,14 +187,22 @@ useEffect(() => {
       document.body.removeChild(link);
       toast.success("Tải file mẫu thành công!");
     } catch (error) {
-      console.error("Lỗi khi tải file:", error);
       toast.error("Không thể tải file mẫu!");
     }
   };
 
   return (
-    <Box sx={{ px: 2, pt: 2, pb: 1, width: "100%" }}>
-      <Typography variant="h5" gutterBottom sx={{ px: 2, pt: 2, pb: 1 }}>
+    <Box sx={{ p: 3, mt: 10 }}>
+      <Typography
+        variant="h5"
+        gutterBottom
+        sx={{
+          fontWeight: "bold",
+          color: "#1976d2",
+          mb: 3,
+          textTransform: "uppercase",
+        }}
+      >
         DANH SÁCH LOẠI SẢN PHẨM
       </Typography>
 

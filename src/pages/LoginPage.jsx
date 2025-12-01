@@ -43,7 +43,7 @@ export default function LoginPage() {
       const res = await api.post(
         "/account/login",
         { accountName, accountPass, captcha },
-        { withCredentials: true } 
+        { withCredentials: true }
       );
 
       const data = res.data;
@@ -56,11 +56,10 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.status || data.success) {
+      if (data.status === true) {
         localStorage.setItem("accountName", accountName);
-        let role = "USER";
-        if (data.isAdmin) role = "ADMIN";
-        else if (data.isEmployee) role = "EMPLOYEE";
+
+        const role = data.role || "USER";
 
         setAuth({
           isLoggedIn: true,
@@ -80,12 +79,20 @@ export default function LoginPage() {
         );
 
         localStorage.setItem("accountId", data.accountID);
-
-        if (role === "ADMIN" || role === "EMPLOYEE") {
+        if (role === "ADMIN") {
           navigate("/dashboard", { replace: true });
-        } else {
+        } else if (role === "EMPLOYEE") {
           navigate("/products", { replace: true });
+        } else if (role === "USER") {
+          navigate("/404", { replace: true });
+        } else {
+          navigate("/404", { replace: true });
         }
+        // if (role === "ADMIN" || role === "EMPLOYEE") {
+        //   navigate("/dashboard", { replace: true });
+        // } else {
+        //   navigate("/products", { replace: true });
+        // }
       } else {
         setError(data.message || "Đăng nhập thất bại");
         refreshCaptcha();
@@ -107,17 +114,12 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-cover bg-center"
-      style={{ backgroundImage: `url(${bgImage})` }}
+      className="relative min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat bg-fixed"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+      }}
     >
       <div className="w-full max-w-lg bg-white/90 p-8 rounded-2xl shadow-2xl backdrop-blur-sm">
-        <div className="flex justify-center mb-6">
-          <img
-            src="../images/e-commerce.jpg"
-            alt="banner"
-            className="w-40 h-40 object-contain"
-          />
-        </div>
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
           ĐĂNG NHẬP
         </h2>

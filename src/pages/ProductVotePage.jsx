@@ -11,6 +11,7 @@ import {
   TableRow,
   Paper,
   Rating,
+  Pagination
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -18,6 +19,9 @@ import API_BASE_URL from "../config/config.js";
 
 const ProductVotePage = () => {
   const [votes, setVotes] = useState([]);
+
+  const [page, setPage] = useState(1); 
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     fetchVotes();
@@ -34,12 +38,24 @@ const ProductVotePage = () => {
   };
 
   return (
-    <Box sx={{ width: "100%", p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Quản lý đánh giá sản phẩm
+    <Box sx={{ p: 3, mt: 10 }}>
+      <Typography
+        variant="h5"
+        gutterBottom
+        sx={{
+          fontWeight: "bold",
+          color: "#1976d2",
+          mb: 3,
+          textTransform: "uppercase",
+        }}
+      >
+        DANH SÁCH ĐÁNH GIÁ SẢN PHẨM
       </Typography>
 
-      <TableContainer component={Paper} sx={{ boxShadow: "0 4px 10px rgba(0,0,0,0.1)" }}>
+      <TableContainer
+        component={Paper}
+        sx={{ boxShadow: "0 4px 10px rgba(0,0,0,0.1)" }}
+      >
         <Table>
           <TableHead sx={{ backgroundColor: "#1976d2" }}>
             <TableRow>
@@ -53,13 +69,16 @@ const ProductVotePage = () => {
           <TableBody>
             {votes.map((vote, index) => (
               <TableRow key={index}>
-                <TableCell>{index + 1}</TableCell>
+                <TableCell>{(page - 1) * 10 + index + 1}</TableCell>
                 <TableCell>{vote.productID}</TableCell>
                 <TableCell>{vote.username || vote.accountID || "Ẩn danh"}</TableCell>
                 <TableCell>{vote.comment}</TableCell>
-                <TableCell><Rating value={vote.rating} readOnly /></TableCell>
+                <TableCell>
+                  <Rating value={vote.rating} readOnly />
+                </TableCell>
               </TableRow>
             ))}
+
             {votes.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center">
@@ -70,6 +89,16 @@ const ProductVotePage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+        <Pagination
+          count={totalPages}
+          page={page}
+          color="primary"
+          shape="rounded"
+        />
+      </Box>
+
       <ToastContainer position="top-right" autoClose={2000} />
     </Box>
   );

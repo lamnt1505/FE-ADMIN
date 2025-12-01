@@ -63,6 +63,9 @@ const Header = ({ drawerWidth }) => {
   const [isSuccess, setIsSuccess] = useState(false);
   const accountId = localStorage.getItem("accountId");
 
+  const [role, setRole] = useState(null);
+  const [accountname, setaccountname] = useState("");
+
   const [openEditProfile, setOpenEditProfile] = useState(false);
   const [accountInfo, setAccountInfo] = useState({
     accountName: "",
@@ -87,6 +90,31 @@ const Header = ({ drawerWidth }) => {
       off(ref(db, "chat/conversations"));
     };
   }, []);
+
+    useEffect(() => {
+    try {
+      const accountData = JSON.parse(localStorage.getItem("account"));
+      if (accountData) {
+        setRole(accountData.role);
+        setaccountname(accountData.accountName);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu từ localStorage:", error);
+    }
+  }, []);
+
+  const getRoleDisplayName = (userRole) => {
+    switch (userRole) {
+      case "ADMIN":
+        return "QUẢN TRỊ VIÊN";
+      case "EMPLOYEE":
+        return "NHÂN VIÊN";
+      case "USER":
+        return "NGƯỜI DÙNG";
+      default:
+        return "NGƯỜI DÙNG";
+    }
+  };
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -298,7 +326,7 @@ const Header = ({ drawerWidth }) => {
       }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h6">DASH BOARD ADMIN</Typography>
+        <Typography variant="h6">{getRoleDisplayName(role)}</Typography>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <IconButton color="inherit" onClick={handleOpenChatList}>
             <Badge
@@ -448,7 +476,7 @@ const Header = ({ drawerWidth }) => {
           sx={{
             fontWeight: 600,
             textAlign: "center",
-            backgroundColor: "#1976d2",
+            backgroundColor: "#2563EB",
             color: "#fff",
           }}
         >
@@ -533,7 +561,7 @@ const Header = ({ drawerWidth }) => {
           sx={{
             fontWeight: 600,
             textAlign: "center",
-            backgroundColor: "#1976d2",
+            backgroundColor: "#2563EB",
             color: "#fff",
           }}
         >

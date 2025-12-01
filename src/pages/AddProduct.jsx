@@ -10,6 +10,9 @@ import "../styles/Products/addProduct.css";
 export default function AddProduct() {
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
+  const [preview, setPreview] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [trademarks, setTrademarks] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -19,10 +22,7 @@ export default function AddProduct() {
     tradeID: "",
     image: "",
   });
-  const [preview, setPreview] = useState("");
-  const [categories, setCategories] = useState([]);
-  const [trademarks, setTrademarks] = useState([]);
-
+  
   useEffect(() => {
     axios
       .get(`${API_BASE_URL}/api/v1/category/Listgetall`)
@@ -41,6 +41,7 @@ export default function AddProduct() {
       [e.target.name]: e.target.value,
     });
   };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -89,11 +90,8 @@ export default function AddProduct() {
         position: "top-center",
         autoClose: 3000,
       });
-
-      console.log("Kết quả:", res.data);
       setTimeout(() => navigate("/products"), 2000);
     } catch (error) {
-      console.error("Lỗi khi thêm sản phẩm:", error);
       if (error.response) {
         const { status, data } = error.response;
         if (status === 409) toast.error(data.error || "⚠️ Tên sản phẩm đã tồn tại!");
@@ -112,13 +110,14 @@ export default function AddProduct() {
     <>
       <Box
         sx={{
-          flexGrow: 1,
+          pl: "240px",
+          mt: "64px",
+          p: 3,
           display: "flex",
           justifyContent: "center",
-          alignItems: "flex-start",
-          backgroundColor: "#f8fafc",
+          alignItems: "center",
           minHeight: "calc(100vh - 64px)",
-          py: 6,
+          backgroundColor: "#f5f5f5",
         }}
       >
         <Box

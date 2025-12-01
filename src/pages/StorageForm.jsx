@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FormControl, InputLabel, Select } from "@mui/material";
 import axios from "axios";
 import {
   Box,
@@ -14,17 +15,27 @@ import API_BASE_URL from "../config/config.js";
 
 const StorageForm = () => {
   const [products, setProducts] = useState([]);
+ 
+  const accountData = JSON.parse(localStorage.getItem("account"));
+  
+  const currentUser = localStorage.getItem("accountName") || "admin";
+
+
   const [form, setForm] = useState({
     productId: "",
     quantity: 0,
     createDate: "",
     updateDate: "",
-    users: "admin",
+    users: "",
   });
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+    setForm((prev) => ({
+      ...prev,
+      users: currentUser,
+    }));
+  }, [currentUser]);
 
   const fetchProducts = async () => {
     try {
@@ -39,23 +50,29 @@ const StorageForm = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({
-      ...form, [name]: name === "quantity" ? Number(value) : value,
+      ...form,
+      [name]: name === "quantity" ? Number(value) : value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("📦 Dữ liệu gửi lên BE:", form);
-
     if (!form.productId) {
       toast.warning("⚠️ Vui lòng chọn sản phẩm!");
       return;
     }
+    
+    if (form.quantity <= 0) {
+      toast.warning("⚠️ Số lượng phải lớn hơn 0!");
+      return;
+    }
+
     try {
       await axios.post(`${API_BASE_URL}/api/v1/storage/add`, form, {
         headers: { "Content-Type": "application/json" },
       });
-      toast.success("Thêm lưu trữ thành công! Đang chuyển hướng...", {
+      
+      toast.success(`✅ Thêm lưu trữ thành công! (Người tạo: ${currentUser})`, {
         autoClose: 3000,
       });
 
@@ -64,13 +81,14 @@ const StorageForm = () => {
       }, 4000);
     } catch (err) {
       console.error("Lỗi khi thêm:", err);
+      toast.error("❌ Lỗi khi thêm lưu trữ!");
     }
   };
 
   return (
     <Box
       sx={{
-        ml: "240px",
+        pl: "240px",
         mt: "64px",
         p: 3,
         display: "flex",
@@ -81,27 +99,37 @@ const StorageForm = () => {
       }}
     >
       <Paper sx={{ p: 4, width: "100%", maxWidth: 500 }}>
-        <Typography variant="h5" gutterBottom align="center">
-          Thêm Lưu Trữ Kho Hàng Sản Phẩm
+        <Typography
+          sx={{
+            fontWeight: "bold",
+            color: "#1976d2",
+            mb: 3,
+            textTransform: "uppercase",
+          }}
+        >
+          Thêm Phiếu Lưu Kho
         </Typography>
 
         <form onSubmit={handleSubmit}>
-          <TextField
-              select
-              fullWidth
-              label="Tên Sản Phẩm"
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="product-label">Tên Sản Phẩm</InputLabel>
+
+            <Select
+              labelId="product-label"
               name="productId"
               value={form.productId}
+              label="Tên Sản Phẩm"
               onChange={handleChange}
-              margin="normal"
               required
-          >
-  {products.map((p) => (
-    <MenuItem key={p.id} value={p.id}>
-      {p.name}
-    </MenuItem>
-  ))}
-</TextField>
+            >
+              {products.map((p) => (
+                <MenuItem key={p.id} value={p.id}>
+                  {p.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
           <TextField
             fullWidth
             label="Số Lượng"
@@ -111,8 +139,10 @@ const StorageForm = () => {
             onChange={handleChange}
             margin="normal"
             required
+            inputProps={{ min: 1 }}
           />
-          <TextField  
+          
+          <TextField
             fullWidth
             label="Ngày Nhập"
             name="createDate"
@@ -122,6 +152,7 @@ const StorageForm = () => {
             margin="normal"
             InputLabelProps={{ shrink: true }}
           />
+          
           <TextField
             fullWidth
             label="Ngày Xuất"
@@ -132,6 +163,7 @@ const StorageForm = () => {
             margin="normal"
             InputLabelProps={{ shrink: true }}
           />
+          
           <TextField
             fullWidth
             label="Người Quản Lý"
@@ -139,6 +171,7 @@ const StorageForm = () => {
             value={form.users}
             margin="normal"
             disabled
+            helperText={`Đăng nhập bằng: ${currentUser}`}
           />
 
           <Button

@@ -16,6 +16,10 @@ import StorageForm from "./pages/StorageForm";
 import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import DiscountList from "./pages/DiscountList";
+import LogViewer from "./pages/LogViewer";
+import NotFound from "./pages/NotFound";
+import ProductDetailList from "./pages/ProductDetailList";
+import ProductVersionList from "./pages/ProductVersionList";
 
 function App() {
   return (
@@ -25,12 +29,17 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         {/* Trang login KHÔNG có layout */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/404" element={<NotFound />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/discountslist" element={<DiscountList />} />
             <Route path="/products" element={<Products />} />
             <Route path="/add-product" element={<AddProduct />} />
+
+            <Route path="/product-versions" element={<ProductVersionList />} />
+            <Route path="/product-details" element={<ProductDetailList />} />
+            
             <Route path="/categories" element={<Categories />} />
             <Route path="/trademarks" element={<Trademarks />} />
             <Route path="/statisticals" element={<Statisticals />} />
@@ -40,9 +49,11 @@ function App() {
             <Route path="/accounts" element={<AccountList />} />
             <Route path="/storages" element={<StorageList />} />
             <Route path="/add-storage" element={<StorageForm />} />
+            <Route path="/logs" element={<LogViewer />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="*" element={<Navigate to="/404" />} />
       </Routes>
     </BrowserRouter>
   );
