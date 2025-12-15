@@ -81,7 +81,7 @@ export default function ProductDetailList() {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/v1/productdetail/getall`);
       setProductDetails(res.data);
-      setPage(1); // Reset to first page
+      setPage(1); 
       const productsRes = await axios.get(`${API_BASE_URL}/api/v1/product/getall`);
       setProducts(productsRes.data);
     } catch (err) {
@@ -96,7 +96,6 @@ export default function ProductDetailList() {
     fetchProductDetails();
   }, []);
 
-  // ========== PAGINATION LOGIC ==========
   const totalPages = Math.ceil(productDetails.length / pageSize);
   const startIndex = (page - 1) * pageSize;
   const endIndex = startIndex + pageSize;
@@ -191,8 +190,6 @@ export default function ProductDetailList() {
         productID: Number(formData.productID),
       };
 
-      console.log("Sending data:", dataToSend);
-
       if (editingId) {
         await axios.put(
           `${API_BASE_URL}/api/v1/productdetail/${editingId}/update`,
@@ -245,7 +242,7 @@ export default function ProductDetailList() {
           textTransform: "uppercase",
         }}
       >
-        📋 DANH SÁCH CHI TIẾT SẢN PHẨM
+        DANH SÁCH CHI TIẾT SẢN PHẨM
       </Typography>
 
       <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center">
@@ -261,7 +258,6 @@ export default function ProductDetailList() {
           Thêm Chi Tiết Sản Phẩm
         </Button>
 
-        {/* Page Size Selector */}
         <FormControl sx={{ minWidth: 120 }}>
           <InputLabel>Hiển thị</InputLabel>
           <Select
@@ -275,8 +271,6 @@ export default function ProductDetailList() {
             <MenuItem value={20}>20 trên trang</MenuItem>
           </Select>
         </FormControl>
-
-        {/* Total count info */}
         <Typography sx={{ ml: "auto" }}>
           Tổng: {productDetails.length} | Trang: {page}/{totalPages}
         </Typography>
@@ -366,7 +360,6 @@ export default function ProductDetailList() {
             </Table>
           </TableContainer>
 
-          {/* Pagination Controls */}
           <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
             <Pagination
               count={totalPages}
@@ -404,17 +397,17 @@ export default function ProductDetailList() {
             p: 3,
           }}
         >
-          {editingId ? "✏️ Chỉnh Sửa Chi Tiết Sản Phẩm" : "➕ Thêm Chi Tiết Sản Phẩm Mới"}
+          {editingId ? "Chỉnh Sửa Chi Tiết Sản Phẩm" : "Thêm Chi Tiết Sản Phẩm Mới"}
         </DialogTitle>
 
         <DialogContent sx={{ pt: 4, pb: 3, px: 3 }}>
           <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel sx={{ fontWeight: 600 }}>📷 Camera</InputLabel>
+            <InputLabel sx={{ fontWeight: 600 }}>Camera</InputLabel>
             <Select
               name="productCamera"
               value={formData.productCamera}
               onChange={handleChange}
-              label="📷 Camera"
+              label="Camera"
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
@@ -436,12 +429,12 @@ export default function ProductDetailList() {
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel sx={{ fontWeight: 600 }}>📡 WiFi / Ultra Wide</InputLabel>
+            <InputLabel sx={{ fontWeight: 600 }}>WiFi / Ultra Wide</InputLabel>
             <Select
               name="productWifi"
               value={formData.productWifi}
               onChange={handleChange}
-              label="📡 WiFi / Ultra Wide"
+              label="WiFi / Ultra Wide"
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
@@ -463,12 +456,12 @@ export default function ProductDetailList() {
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel sx={{ fontWeight: 600 }}>📺 Màn Hình</InputLabel>
+            <InputLabel sx={{ fontWeight: 600 }}>Màn Hình</InputLabel>
             <Select
               name="productScreen"
               value={formData.productScreen}
               onChange={handleChange}
-              label="📺 Màn Hình"
+              label="Màn Hình"
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
@@ -490,12 +483,12 @@ export default function ProductDetailList() {
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel sx={{ fontWeight: 600 }}>🔵 Bluetooth</InputLabel>
+            <InputLabel sx={{ fontWeight: 600 }}>Bluetooth</InputLabel>
             <Select
               name="productBluetooth"
               value={formData.productBluetooth}
               onChange={handleChange}
-              label="🔵 Bluetooth"
+              label="Bluetooth"
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
@@ -517,12 +510,12 @@ export default function ProductDetailList() {
           </FormControl>
 
           <FormControl fullWidth>
-            <InputLabel sx={{ fontWeight: 600 }}>📦 Sản Phẩm</InputLabel>
+            <InputLabel sx={{ fontWeight: 600 }}>Sản Phẩm</InputLabel>
             <Select
               name="productID"
               value={formData.productID}
               onChange={handleChange}
-              label="📦 Sản Phẩm"
+              label="Sản Phẩm"
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
@@ -589,7 +582,7 @@ export default function ProductDetailList() {
               },
             }}
           >
-            {editingId ? "💾 Cập Nhật" : "➕ Thêm"}
+            {editingId ? "Cập Nhật" : "Thêm"}
           </Button>
         </DialogActions>
       </Dialog>

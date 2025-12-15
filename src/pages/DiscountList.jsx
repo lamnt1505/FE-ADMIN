@@ -336,6 +336,8 @@ const DiscountList = () => {
               {paginatedDiscounts.length > 0 ? (
                 paginatedDiscounts.map((d, index) => {
                   const status = getStatus(d.dateStart, d.dateFinish);
+                  const isExpired = status === "Hết hạn";
+
                   return (
                     <TableRow
                       key={index}
@@ -381,6 +383,7 @@ const DiscountList = () => {
                             variant="outlined"
                             color="primary"
                             size="small"
+                            disabled={isExpired}
                             onClick={() => handleOpenUpdate(d.discountID)}
                             sx={{ textTransform: "none", borderRadius: 2 }}
                           >
@@ -390,6 +393,7 @@ const DiscountList = () => {
                             variant="outlined"
                             color="error"
                             size="small"
+                            disabled={isExpired}
                             onClick={() => handleOpenConfirm(d.discountID)}
                             sx={{ textTransform: "none", borderRadius: 2 }}
                           >
@@ -408,6 +412,7 @@ const DiscountList = () => {
                           variant="contained"
                           color={d.active ? "error" : "success"}
                           size="small"
+                          disabled={isExpired}
                           onClick={() => handleToggleActive(d.discountID)}
                           sx={{ textTransform: "none", borderRadius: 2 }}
                         >

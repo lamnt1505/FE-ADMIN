@@ -137,7 +137,7 @@ export default function AddProduct() {
             color="primary"
             gutterBottom
           >
-            🧾 THÊM SẢN PHẨM MỚI
+            THÊM SẢN PHẨM MỚI
           </Typography>
 
           <Box
@@ -219,7 +219,7 @@ export default function AddProduct() {
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <Button variant="outlined" component="label" fullWidth>
-                📷 Chọn ảnh
+                Chọn ảnh
                 <input type="file" hidden accept="image/*" onChange={handleFileChange} />
               </Button>
               {preview && (
@@ -276,7 +276,7 @@ export default function AddProduct() {
                 fontWeight: "bold",
               }}
             >
-              ➕ Lưu sản phẩm
+              Lưu sản phẩm
             </Button>
 
             <Button
@@ -290,7 +290,7 @@ export default function AddProduct() {
                 fontWeight: "bold",
               }}
             >
-              ⬅ Quay lại
+              Quay lại
             </Button>
           </Box>
         </Box>

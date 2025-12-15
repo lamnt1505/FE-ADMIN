@@ -123,14 +123,14 @@ const Products = () => {
         }
       );
 
-      toast.success("✅ Cập nhật sản phẩm thành công!");
+      toast.success("Cập nhật sản phẩm thành công!");
       handleCloseUpdate();
       fetchProducts(page - 1, pageSize);
     } catch (err) {
       console.error("Lỗi khi cập nhật:", err);
       if (err.response)
-        toast.error(err.response.data?.error || "❌ Cập nhật thất bại!");
-      else toast.error("🚫 Không thể kết nối đến server!");
+        toast.error(err.response.data?.error || "Cập nhật thất bại!");
+      else toast.error("Không thể kết nối đến server!");
     }
   };
 
@@ -226,7 +226,7 @@ const Products = () => {
   const fetchProducts = async (pageNum, pageSizeNum) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/v1/product/paginated`, {
-        params: { page: pageNum, size: pageSizeNum, sort: ["productID", "asc"] },
+        params: { page: pageNum, size: pageSizeNum, sort: ["productID", "desc"] },
         withCredentials: true,
       });
       setProducts(res.data.content);

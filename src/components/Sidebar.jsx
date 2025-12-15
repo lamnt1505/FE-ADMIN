@@ -116,7 +116,20 @@ const Sidebar = ({ onToggle }) => {
           </ListItemIcon>
           {open && <ListItemText primary="QUẢN LÝ TÀI KHOẢN" />}
         </ListItem>
+                <ListItem button component={Link} to="/categories">
+          <ListItemIcon sx={{ color: "white" }}>
+            <CategoryIcon />
+          </ListItemIcon>
+          {open && <ListItemText primary="QUẢN LÝ LOẠI SẢN PHẨM" />}
+        </ListItem>
 
+        <ListItem button component={Link} to="/trademarks">
+          <ListItemIcon sx={{ color: "white" }}>
+            <MdOutlineCheckroom size={22} />
+          </ListItemIcon>
+          {open && <ListItemText primary="QUẢN LÝ THƯƠNG HIỆU" />}
+        </ListItem>
+        
         {/* === MENU CON: QUẢN LÝ SẢN PHẨM === */}
         <ListItem
           button
@@ -199,20 +212,6 @@ const Sidebar = ({ onToggle }) => {
             </ListItem>
           </List>
         </Collapse>
-
-        <ListItem button component={Link} to="/categories">
-          <ListItemIcon sx={{ color: "white" }}>
-            <CategoryIcon />
-          </ListItemIcon>
-          {open && <ListItemText primary="QUẢN LÝ LOẠI SẢN PHẨM" />}
-        </ListItem>
-
-        <ListItem button component={Link} to="/trademarks">
-          <ListItemIcon sx={{ color: "white" }}>
-            <MdOutlineCheckroom size={22} />
-          </ListItemIcon>
-          {open && <ListItemText primary="QUẢN LÝ THƯƠNG HIỆU" />}
-        </ListItem>
 
         <ListItem button component={Link} to="/statisticals">
           <ListItemIcon sx={{ color: "white" }}>

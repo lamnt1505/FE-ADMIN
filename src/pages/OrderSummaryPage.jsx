@@ -38,9 +38,10 @@ const OrderSummaryPage = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
-    fetchOrders();
+      fetchOrders();
   }, []);
 
+  //job duyệt sản phẩm tự động mỗi 30 phút
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -54,7 +55,7 @@ const OrderSummaryPage = () => {
             if (
               order.status === "Hoàn thành" ||
               order.status === "Đã huỷ" ||
-              order.status === "Thanh toán thất bại"
+              order.status === "THANH TOÁN THẤT BẠI"
             ) {
               return;
             }
@@ -87,33 +88,33 @@ const OrderSummaryPage = () => {
 
               if (result === "SUCCESS") {
                 toast.info(
-                  `🔄 Đơn hàng #${order.orderId} tự động chuyển sang "${nextStatus}"`,
+                  `Đơn hàng #${order.orderId} tự động chuyển sang "${nextStatus}"`,
                   { position: "bottom-right", autoClose: 2500 }
                 );
               } else if (result === "INSUFFICIENT_QUANTITY") {
                 toast.warning(
-                  `⚠️ Đơn #${order.orderId} không đủ hàng, không thể tự cập nhật!`,
+                  `Đơn #${order.orderId} không đủ hàng, không thể tự cập nhật!`,
                   { position: "bottom-right", autoClose: 3000 }
                 );
               } else if (result === "STORAGE_NOT_FOUND") {
                 toast.error(
-                  `❌ Đơn #${order.orderId}: sản phẩm không tồn tại trong kho!`,
+                  `Đơn #${order.orderId}: sản phẩm không tồn tại trong kho!`,
                   { position: "bottom-right", autoClose: 3000 }
                 );
               } else {
                 console.warn(
-                  `⚠️ Auto update thất bại cho đơn #${order.orderId}`
+                  `Auto update thất bại cho đơn #${order.orderId}`
                 );
               }
             } catch (err) {
-              console.error(`⚠️ Lỗi auto cập nhật đơn #${order.orderId}:`, err);
+              console.error(`Lỗi auto cập nhật đơn #${order.orderId}:`, err);
             }
           })
         );
       } catch (err) {
-        console.error("🚨 Lỗi khi fetch danh sách đơn hàng:", err);
+        console.error("Lỗi khi fetch danh sách đơn hàng:", err);
       }
-    }, 10 * 60 * 1000);
+    }, 30 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
@@ -132,7 +133,7 @@ const OrderSummaryPage = () => {
 
   const handleUpdateStatus = async () => {
     if (!selectedOrder || !status) {
-      alert("Vui lòng chọn trạng thái!");
+      toast.warning("Vui lòng chọn trạng thái!");
       return;
     }
     try {
@@ -175,7 +176,8 @@ const OrderSummaryPage = () => {
   const fetchOrders = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/dossier-statistic/summary`);
-      setOrders(res.data);
+      const sorted = res.data.sort((a, b) => b.orderId - a.orderId);
+      setOrders(sorted);
     } catch (err) {}
   };
 
@@ -318,7 +320,7 @@ const OrderSummaryPage = () => {
                         backgroundColor:
                           order.status === "Hoàn thành"
                             ? "#c8e6c9"
-                            : order.status === "Đã huỷ"
+                            : order.status === "Đã Huỷ"
                             ? "#ffcdd2"
                             : order.status === "Đang giao hàng"
                             ? "#fff9c4"
@@ -326,7 +328,7 @@ const OrderSummaryPage = () => {
                         color:
                           order.status === "Hoàn thành"
                             ? "#2e7d32"
-                            : order.status === "Đã huỷ"
+                            : order.status === "Đã Huỷ"
                             ? "#c62828"
                             : order.status === "Đang giao hàng"
                             ? "#f57f17"
@@ -437,7 +439,7 @@ const OrderSummaryPage = () => {
               "Đang xử lý",
               "Đang giao hàng",
               "Hoàn thành",
-              "Đã huỷ",
+              "Đã Huỷ",
             ].map((label, i) => (
               <FormControlLabel
                 key={i}

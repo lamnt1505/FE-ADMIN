@@ -20,7 +20,6 @@ import {
   Select,
   FormControl,
   InputLabel,
-  TextField,
   Pagination,
   Stack,
 } from "@mui/material";
@@ -30,19 +29,48 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { ToastContainer, toast } from "react-toastify";
 import API_BASE_URL from "../config/config.js";
 
+// Danh sách dữ liệu có sẵn
+const memoryOptions = [
+  "64GB",
+  "128GB",
+  "256GB",
+  "512GB",
+  "1TB",
+];
+
+const colorOptions = [
+  "Space Gray",
+  "Silver",
+  "Gold",
+  "Midnight",
+  "Starlight",
+  "Deep Purple",
+  "Blue",
+  "Black",
+  "White",
+  "Red",
+];
+
+const imageOptions = [
+  "https://images.unsplash.com/photo-1592286927505-1def25115558?w=500&q=80",
+  "https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=500&q=80",
+  "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80",
+  "https://images.unsplash.com/photo-1611532736579-6b16e2b50449?w=500&q=80",
+  "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80",
+];
+
 export default function ProductVersionList() {
   const [productVersions, setProductVersions] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [loadingDialog, setLoadingDialog] = useState(false);
 
-  // Pagination states
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5); // 5 items per page
+  const [pageSize, setPageSize] = useState(5);
 
   const [formData, setFormData] = useState({
-    versionID: null,
     memory: "",
     color: "",
     image1: "",
@@ -54,7 +82,7 @@ export default function ProductVersionList() {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/v1/product/version/Listgetall`);
       setProductVersions(res.data);
-      setPage(1); // Reset to first page
+      setPage(1);
       
       const productsRes = await axios.get(`${API_BASE_URL}/api/v1/product/getall`);
       setProducts(productsRes.data);
@@ -70,7 +98,6 @@ export default function ProductVersionList() {
     fetchProductVersions();
   }, []);
 
-  // ========== PAGINATION LOGIC ==========
   const totalPages = Math.ceil(productVersions.length / pageSize);
   const startIndex = (page - 1) * pageSize;
   const endIndex = startIndex + pageSize;
@@ -82,13 +109,12 @@ export default function ProductVersionList() {
 
   const handlePageSizeChange = (event) => {
     setPageSize(event.target.value);
-    setPage(1); // Reset to first page
+    setPage(1);
   };
 
   const handleOpenAdd = () => {
     setEditingId(null);
     setFormData({
-      versionID: null,
       memory: "",
       color: "",
       image1: "",
@@ -99,21 +125,27 @@ export default function ProductVersionList() {
 
   const handleOpenEdit = async (version) => {
     setEditingId(version.versionID);
+    setOpenDialog(true);
+    setLoadingDialog(true);
+
     try {
       const res = await axios.get(
         `${API_BASE_URL}/api/v1/product/version/${version.versionID}`
       );
+      
       setFormData({
-        versionID: res.data.versionID,
         memory: res.data.memory,
         color: res.data.color,
         image1: res.data.image1,
         productID: res.data.productID,
       });
-      setOpenDialog(true);
     } catch (err) {
       console.error("Lỗi khi lấy dữ liệu:", err);
       toast.error("Lỗi khi lấy dữ liệu phiên bản");
+      setOpenDialog(false);
+      setEditingId(null);
+    } finally {
+      setLoadingDialog(false);
     }
   };
 
@@ -133,15 +165,15 @@ export default function ProductVersionList() {
 
   const handleSave = async () => {
     if (!formData.memory) {
-      toast.error("Vui lòng nhập Memory!");
+      toast.error("Vui lòng chọn Memory!");
       return;
     }
     if (!formData.color) {
-      toast.error("Vui lòng nhập Color!");
+      toast.error("Vui lòng chọn Color!");
       return;
     }
     if (!formData.image1) {
-      toast.error("Vui lòng nhập Image URL!");
+      toast.error("Vui lòng chọn Image!");
       return;
     }
     if (!formData.productID || formData.productID <= 0) {
@@ -151,7 +183,6 @@ export default function ProductVersionList() {
 
     try {
       const dataToSend = {
-        versionID: null,
         memory: formData.memory,
         color: formData.color,
         image1: formData.image1,
@@ -159,28 +190,28 @@ export default function ProductVersionList() {
       };
 
       if (editingId) {
-        await axios.put(
+        const response = await axios.put(
           `${API_BASE_URL}/api/v1/product/version/${editingId}/update`,
           dataToSend
         );
-        toast.success("Cập nhật thành công!");
+        if (response.status === 200) {
+          toast.success("Cập nhật thành công!");
+        }
       } else {
-        await axios.post(
-          `${API_BASE_URL}/api/v1/product/version/add`,
+        const response = await axios.post(
+          `${API_BASE_URL}/api/v1/product/version/create`,
           dataToSend
         );
-        toast.success("Thêm thành công!");
+        if (response.status === 201) {
+          toast.success("Thêm thành công!");
+        }
       }
 
       handleCloseDialog();
       fetchProductVersions();
     } catch (err) {
       console.error("Lỗi khi lưu:", err);
-      const errorMsg =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        err.message ||
-        "Lỗi khi lưu dữ liệu";
+      const errorMsg = err.response?.data || err.message || "Lỗi khi lưu dữ liệu";
       toast.error(errorMsg);
     }
   };
@@ -188,12 +219,17 @@ export default function ProductVersionList() {
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc muốn xóa?")) {
       try {
-        await axios.delete(`${API_BASE_URL}/api/v1/product/version/${id}`);
-        fetchProductVersions();
-        toast.success("Xóa thành công!");
+        const response = await axios.delete(
+          `${API_BASE_URL}/api/v1/product/version/${id}/delete`
+        );
+        if (response.status === 200) {
+          toast.success("Xóa thành công!");
+          fetchProductVersions();
+        }
       } catch (err) {
         console.error("Lỗi khi xóa:", err);
-        toast.error("Lỗi khi xóa");
+        const errorMsg = err.response?.data || err.message || "Lỗi khi xóa";
+        toast.error(errorMsg);
       }
     }
   };
@@ -210,7 +246,7 @@ export default function ProductVersionList() {
           textTransform: "uppercase",
         }}
       >
-        🔧 DANH SÁCH PHIÊN BẢN SẢN PHẨM
+        DANH SÁCH PHIÊN BẢN SẢN PHẨM
       </Typography>
 
       <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center">
@@ -226,7 +262,6 @@ export default function ProductVersionList() {
           Thêm Phiên Bản Sản Phẩm
         </Button>
 
-        {/* Page Size Selector */}
         <FormControl sx={{ minWidth: 120 }}>
           <InputLabel>Hiển thị</InputLabel>
           <Select
@@ -241,7 +276,6 @@ export default function ProductVersionList() {
           </Select>
         </FormControl>
 
-        {/* Total count info */}
         <Typography sx={{ ml: "auto" }}>
           Tổng: {productVersions.length} | Trang: {page}/{totalPages}
         </Typography>
@@ -333,7 +367,6 @@ export default function ProductVersionList() {
             </Table>
           </TableContainer>
 
-          {/* Pagination Controls */}
           <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
             <Pagination
               count={totalPages}
@@ -371,69 +404,128 @@ export default function ProductVersionList() {
             p: 3,
           }}
         >
-          {editingId ? "✏️ Chỉnh Sửa Phiên Bản Sản Phẩm" : "➕ Thêm Phiên Bản Sản Phẩm Mới"}
+          {editingId ? "Chỉnh Sửa Phiên Bản Sản Phẩm" : "Thêm Phiên Bản Sản Phẩm Mới"}
         </DialogTitle>
 
         <DialogContent sx={{ pt: 4, pb: 3, px: 3 }}>
-          <TextField
-            fullWidth
-            label="💾 Memory"
-            name="memory"
-            placeholder="VD: Space Gray, Midnight, Starlight"
-            value={formData.memory}
-            onChange={handleChange}
-            sx={{ mb: 3 }}
-          />
+          {loadingDialog && editingId ? (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              <FormControl fullWidth sx={{ mb: 3 }}>
+                <InputLabel sx={{ fontWeight: 600 }}>Memory</InputLabel>
+                <Select
+                  name="memory"
+                  value={formData.memory}
+                  onChange={handleChange}
+                  label="Memory"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                      "&:hover fieldset": {
+                        borderColor: "#1976d2",
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>-- Chọn Memory --</em>
+                  </MenuItem>
+                  {memoryOptions.map((memory) => (
+                    <MenuItem key={memory} value={memory}>
+                      {memory}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
-          <TextField
-            fullWidth
-            label="🎨 Color"
-            name="color"
-            placeholder="VD: 256GB, 512GB, 1TB"
-            value={formData.color}
-            onChange={handleChange}
-            sx={{ mb: 3 }}
-          />
+              <FormControl fullWidth sx={{ mb: 3 }}>
+                <InputLabel sx={{ fontWeight: 600 }}>Color</InputLabel>
+                <Select
+                  name="color"
+                  value={formData.color}
+                  onChange={handleChange}
+                  label="Color"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                      "&:hover fieldset": {
+                        borderColor: "#1976d2",
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>-- Chọn Color --</em>
+                  </MenuItem>
+                  {colorOptions.map((color) => (
+                    <MenuItem key={color} value={color}>
+                      {color}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
-          <TextField
-            fullWidth
-            label="🖼️ Image URL"
-            name="image1"
-            placeholder="https://..."
-            value={formData.image1}
-            onChange={handleChange}
-            sx={{ mb: 3 }}
-          />
+              <FormControl fullWidth sx={{ mb: 3 }}>
+                <InputLabel sx={{ fontWeight: 600 }}>Image</InputLabel>
+                <Select
+                  name="image1"
+                  value={formData.image1}
+                  onChange={handleChange}
+                  label="Image"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                      "&:hover fieldset": {
+                        borderColor: "#1976d2",
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>-- Chọn Ảnh --</em>
+                  </MenuItem>
+                  {imageOptions.map((image, idx) => (
+                    <MenuItem key={idx} value={image}>
+                      Ảnh {idx + 1}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
-          <FormControl fullWidth>
-            <InputLabel sx={{ fontWeight: 600 }}>📦 Sản Phẩm</InputLabel>
-            <Select
-              name="productID"
-              value={formData.productID}
-              onChange={handleChange}
-              label="📦 Sản Phẩm"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  "&:hover fieldset": {
-                    borderColor: "#1976d2",
-                  },
-                },
-              }}
-            >
-              <MenuItem value="">
-                <em>-- Chọn Sản Phẩm --</em>
-              </MenuItem>
-              {products.map((product) => (
-                <MenuItem key={product.id} value={product.id}>
-                  <span style={{ fontWeight: 500 }}>{product.name}</span>
-                  <span style={{ marginLeft: 8, color: "#999", fontSize: "0.85em" }}>
-                    (ID: {product.id})
-                  </span>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              <FormControl fullWidth>
+                <InputLabel sx={{ fontWeight: 600 }}>Sản Phẩm</InputLabel>
+                <Select
+                  name="productID"
+                  value={formData.productID}
+                  onChange={handleChange}
+                  label="Sản Phẩm"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                      "&:hover fieldset": {
+                        borderColor: "#1976d2",
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>-- Chọn Sản Phẩm --</em>
+                  </MenuItem>
+                  {products.map((product) => (
+                    <MenuItem key={product.id} value={product.id}>
+                      <span style={{ fontWeight: 500 }}>{product.name}</span>
+                      <span style={{ marginLeft: 8, color: "#999", fontSize: "0.85em" }}>
+                        (ID: {product.id})
+                      </span>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </>
+          )}
         </DialogContent>
 
         <DialogActions
@@ -464,6 +556,7 @@ export default function ProductVersionList() {
           <Button
             onClick={handleSave}
             variant="contained"
+            disabled={loadingDialog && editingId}
             sx={{
               backgroundColor: editingId ? "#2196F3" : "#4CAF50",
               borderRadius: 2,
@@ -478,7 +571,7 @@ export default function ProductVersionList() {
               },
             }}
           >
-            {editingId ? "💾 Cập Nhật" : "➕ Thêm"}
+            {editingId ? "Cập Nhật" : "Thêm"}
           </Button>
         </DialogActions>
       </Dialog>

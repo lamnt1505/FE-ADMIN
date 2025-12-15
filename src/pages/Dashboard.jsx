@@ -328,16 +328,6 @@ const Dashboard = () => {
                   mb: 2,
                 }}
               >
-                <Avatar
-                  sx={{
-                    bgcolor: "#10b98115",
-                    width: 50,
-                    height: 50,
-                    boxShadow: "0 4px 12px #10b98125",
-                  }}
-                >
-                  <Typography sx={{ fontSize: 26 }}>💰</Typography>
-                </Avatar>
                 <Chip
                   label="+15.3%"
                   size="small"
@@ -393,16 +383,6 @@ const Dashboard = () => {
                   mb: 2,
                 }}
               >
-                <Avatar
-                  sx={{
-                    bgcolor: "#6366f115",
-                    width: 50,
-                    height: 50,
-                    boxShadow: "0 4px 12px #6366f125",
-                  }}
-                >
-                  <Typography sx={{ fontSize: 26 }}>🛒</Typography>
-                </Avatar>
                 <Chip
                   label="+12.5%"
                   size="small"
@@ -434,72 +414,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
-        {/* Card 3: Người Dùng Mới */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card
-            sx={{
-              borderRadius: 3,
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-              transition: "all 0.3s ease",
-              background: "linear-gradient(135deg, #f59e0b08 0%, #ffffff 100%)",
-              border: "1px solid #f59e0b20",
-              "&:hover": {
-                transform: "translateY(-4px)",
-                boxShadow: "0 8px 30px #f59e0b30",
-              },
-            }}
-          >
-            <CardContent sx={{ p: 2.5 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  justifyContent: "space-between",
-                  mb: 2,
-                }}
-              >
-                <Avatar
-                  sx={{
-                    bgcolor: "#f59e0b15",
-                    width: 50,
-                    height: 50,
-                    boxShadow: "0 4px 12px #f59e0b25",
-                  }}
-                >
-                  <Typography sx={{ fontSize: 26 }}>👥</Typography>
-                </Avatar>
-                <Chip
-                  label="+8.2%"
-                  size="small"
-                  sx={{
-                    bgcolor: "#10b981",
-                    color: "white",
-                    fontWeight: 600,
-                    fontSize: "0.7rem",
-                    height: 22,
-                  }}
-                />
-              </Box>
-              <Typography
-                sx={{
-                  fontSize: 13,
-                  color: "#6c757d",
-                  fontWeight: 500,
-                  mb: 0.5,
-                }}
-              >
-                Người dùng mới
-              </Typography>
-              <Typography
-                sx={{ fontSize: 24, fontWeight: 700, color: "#f59e0b" }}
-              >
-                1,220
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Card 4: Tỷ Lệ Thành Công */}
+        {/* Card 3: Tỷ Lệ Thành Công */}
         <Grid item xs={12} sm={6} md={3}>
           <Card
             sx={{
@@ -523,16 +438,6 @@ const Dashboard = () => {
                   mb: 2,
                 }}
               >
-                <Avatar
-                  sx={{
-                    bgcolor: "#ec489915",
-                    width: 50,
-                    height: 50,
-                    boxShadow: "0 4px 12px #ec489925",
-                  }}
-                >
-                  <Typography sx={{ fontSize: 26 }}>✅</Typography>
-                </Avatar>
               </Box>
               <Typography
                 sx={{

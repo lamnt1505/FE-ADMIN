@@ -19,19 +19,15 @@ import {
   TextField,
   Button,
   Badge,
+  Divider,
+  Paper,
 } from "@mui/material";
 import MailIcon from "@mui/icons-material/Mail";
+import CloseIcon from "@mui/icons-material/Close";
+import MinimizeIcon from "@mui/icons-material/Minimize";
 import useAuthCookie from "../hooks/useAuthCookie";
 import { db } from "../firebase/firebaseConfig";
-import {
-  ref,
-  onChildAdded,
-  push,
-  off,
-  get,
-  set,
-  onValue,
-} from "firebase/database";
+import { ref, get, onValue, off } from "firebase/database";
 import API_BASE_URL from "../config/config.js";
 import {
   getAccountById,
@@ -52,6 +48,7 @@ const Header = ({ drawerWidth }) => {
   const [newMsgCount, setNewMsgCount] = useState(0);
   const [readUsers, setReadUsers] = useState([]);
   const chatEndRef = useRef(null);
+  const listenerRef = useRef(null);
   const navigate = useNavigate();
 
   const [openChangePassword, setOpenChangePassword] = useState(false);
@@ -59,6 +56,10 @@ const Header = ({ drawerWidth }) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loadingChange, setLoadingChange] = useState(false);
+
+  const [messageChangePassword, setMessageChangePassword] = useState("");
+  const [isSuccessChangePassword, setIsSuccessChangePassword] = useState(false);
+
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const accountId = localStorage.getItem("accountId");
@@ -67,6 +68,11 @@ const Header = ({ drawerWidth }) => {
   const [accountname, setaccountname] = useState("");
 
   const [openEditProfile, setOpenEditProfile] = useState(false);
+  const [messageEditProfile, setMessageEditProfile] = useState("");
+  const [isSuccessEditProfile, setIsSuccessEditProfile] = useState(false);
+
+  const [currentTime, setCurrentTime] = useState("");
+
   const [accountInfo, setAccountInfo] = useState({
     accountName: "",
     username: "",
@@ -78,6 +84,24 @@ const Header = ({ drawerWidth }) => {
   });
   const [previewImage, setPreviewImage] = useState("");
   const [loadingUpdate, setLoadingUpdate] = useState(false);
+  const [minimizeChatBox, setMinimizeChatBox] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      const formatted =
+        now.getDate().toString().padStart(2, "0") +
+        "/" +
+        (now.getMonth() + 1).toString().padStart(2, "0") +
+        "/" +
+        now.getFullYear() +
+        " " +
+        now.toLocaleTimeString("vi-VN");
+      setCurrentTime(formatted);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (chatEndRef.current) {
@@ -85,13 +109,13 @@ const Header = ({ drawerWidth }) => {
     }
   }, [chatWithUser]);
 
-  useEffect(() => {
+  useEffect(() => {// tắt lắng nghe khi component unmount
     return () => {
       off(ref(db, "chat/conversations"));
     };
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     try {
       const accountData = JSON.parse(localStorage.getItem("account"));
       if (accountData) {
@@ -102,6 +126,24 @@ const Header = ({ drawerWidth }) => {
       console.error("Lỗi khi lấy dữ liệu từ localStorage:", error);
     }
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (listenerRef.current) {
+        off(listenerRef.current);
+        listenerRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!openChatBox) {
+      if (listenerRef.current) {
+        off(listenerRef.current);
+        listenerRef.current = null;
+      }
+    }
+  }, [openChatBox]);
 
   const getRoleDisplayName = (userRole) => {
     switch (userRole) {
@@ -142,12 +184,13 @@ const Header = ({ drawerWidth }) => {
 
   const handleOpenChangePassword = () => {
     setOpenChangePassword(true);
+    setMessageChangePassword("");
     setAnchorEl(null);
   };
 
   const handleChangePassword = async () => {
     setLoadingChange(true);
-    setMessage("");
+    setMessageChangePassword("");
 
     const result = await changePassword(
       accountId,
@@ -156,15 +199,18 @@ const Header = ({ drawerWidth }) => {
       confirmPassword
     );
 
-    setIsSuccess(result.success);
-    setMessage(result.message);
+    setIsSuccessChangePassword(result.success);
+    setMessageChangePassword(result.message);
 
     if (result.success) {
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
 
-      setTimeout(() => setOpenChangePassword(false), 2000);
+      setTimeout(() => {
+        setOpenChangePassword(false);
+        setMessageChangePassword("");
+      }, 2000);
     }
 
     setLoadingChange(false);
@@ -188,6 +234,7 @@ const Header = ({ drawerWidth }) => {
 
   const handleOpenEditProfile = async () => {
     setOpenEditProfile(true);
+    setMessageEditProfile("");
     setAnchorEl(null);
     const id = localStorage.getItem("accountId");
     try {
@@ -213,13 +260,16 @@ const Header = ({ drawerWidth }) => {
 
     try {
       await updateAccount(id, accountInfo);
-      setMessage("CẬP NHẬT TÀI KHOẢN THÀNH CÔNG ✅");
-      setIsSuccess(true);
-      setTimeout(() => setOpenEditProfile(false), 1500);
+      setMessageEditProfile("CẬP NHẬT TÀI KHOẢN THÀNH CÔNG ✅");
+      setIsSuccessEditProfile(true);
+      setTimeout(() => {
+        setOpenEditProfile(false);
+        setMessageEditProfile("");
+      }, 1500);
     } catch (err) {
       console.error("Lỗi khi cập nhật tài khoản:", err);
-      setMessage("CẬP NHẬT THẤT BẠI ❌");
-      setIsSuccess(false);
+      setMessageEditProfile("CẬP NHẬT THẤT BẠI ❌");
+      setIsSuccessEditProfile(false);
     } finally {
       setLoadingUpdate(false);
     }
@@ -229,7 +279,7 @@ const Header = ({ drawerWidth }) => {
     setOpenChatList(true);
     setLoading(true);
     try {
-      const snapshot = await get(ref(db, "chat/conversations"));
+      const snapshot = await get(ref(db, "chat/conversations"));//mở danh sách chat
       if (snapshot.exists()) {
         const data = snapshot.val();
 
@@ -240,10 +290,14 @@ const Header = ({ drawerWidth }) => {
             Object.values(data[key])[0]?.sender
         );
 
-        const latestMsgs = users.map((user) => {
+        const latestMsgs = users.map((user) => {//lấy tất cả tin nhắn map
           const msgs = Object.values(data[user]);
           const lastMsg = msgs[msgs.length - 1];
-          return { sender: user, ...lastMsg };
+          return {
+            sender: user,
+            content: lastMsg.content,
+            timestamp: lastMsg.timestamp,
+          };
         });
 
         setMessages(latestMsgs.reverse());
@@ -253,7 +307,10 @@ const Header = ({ drawerWidth }) => {
     } finally {
       setLoading(false);
     }
+
     const chatRef = ref(db, "chat/conversations");
+    off(chatRef);
+
     onValue(chatRef, (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
@@ -267,7 +324,7 @@ const Header = ({ drawerWidth }) => {
           lastMsg.sender !== "Admin" &&
           !readUsers.includes(user)
         ) {
-          newCount++;
+          newCount++;//đếm số tin nhắn mới khi click vào icon mail
         }
       });
 
@@ -279,37 +336,76 @@ const Header = ({ drawerWidth }) => {
     setSelectedUser(senderName);
     setOpenChatBox(true);
     setOpenChatList(false);
+
     setReadUsers((prev) => [...new Set([...prev, senderName])]);
 
-    const chatRef = ref(db, `chat/conversations/${senderName}`);
-    onValue(chatRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const list = Object.values(data).sort(
-          (a, b) => a.timestamp - b.timestamp
-        );
-        setChatWithUser(list);
-      } else setChatWithUser([]);
-    });
-    setNewMsgCount((prev) => Math.max(prev - 1, 0));
-  };
-  
-  const handleSendReply = async () => {
-    if (!replyText.trim() || !selectedUser) return;
+    const chatRef = ref(db, `chat/conversations/${senderName}`);//chọn người để xử lý chat
+
+    if (listenerRef.current) {
+      off(listenerRef.current);
+      listenerRef.current = null;
+    }
+
     try {
-      const chatRef = ref(db, `chat/conversations/${selectedUser}`);
-      const newMsg = push(chatRef);
-      await set(newMsg, {
-        sender: "Admin",
-        content: replyText,
-        timestamp: Date.now(),
-      });
+      const snapshot = await get(chatRef);// thực hiện lấy toàn bộ tin nhắn với người dùng đã chọn
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const allMessages = Object.entries(data)
+          .map(([key, value]) => ({
+            id: key,
+            ...value,
+          }))
+          .sort((a, b) => a.timestamp - b.timestamp);
+
+        setChatWithUser(allMessages);
+      } else {
+        setChatWithUser([]);
+      }
+    } catch (err) {
+      console.error("Load error:", err);
+      setChatWithUser([]);
+    }
+
+    const callback = (snapshot) => {
+      const data = snapshot.val();
+      if (!data) {
+        setChatWithUser([]);
+        return;
+      }
+      const allMessages = Object.entries(data)
+        .map(([key, value]) => ({
+          id: key,
+          ...value,
+        }))
+        .sort((a, b) => a.timestamp - b.timestamp);
+
+      setChatWithUser(allMessages);
+    };
+
+    listenerRef.current = chatRef;//lắng nghe thay đổi tin nhắn với người dùng đã chọn
+    onValue(chatRef, callback);
+
+    setNewMsgCount((prev) => Math.max(prev - 1, 0));//xem tin nhắn giảm thông báo
+  };
+
+  const handleSendReply = async () => {
+    if (!replyText.trim() || !selectedUser) {
+      console.warn("Thiếu replyText hoặc selectedUser");
+      return;
+    }
+    try {
+      const message = replyText;
       setReplyText("");
 
-      await fetch(
-        `${API_BASE_URL}/api/chat/send?sender=Admin&content=(${selectedUser}) ${replyText}`,
+      const encodedContent = encodeURIComponent(`(${selectedUser}) ${message}`);
+      const response = await fetch(// gửi phản hồi qua API
+        `${API_BASE_URL}/api/chat/send?sender=Admin&content=${encodedContent}`,
         { method: "POST" }
       );
+
+      if (!response.ok) {
+        console.error("API error:", response.statusText);
+      }
     } catch (err) {
       console.error("Lỗi khi gửi phản hồi:", err);
     }
@@ -326,7 +422,27 @@ const Header = ({ drawerWidth }) => {
       }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h6">{getRoleDisplayName(role)}</Typography>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            lineHeight: "1.2",
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {getRoleDisplayName(role)}
+          </Typography>
+          <Typography
+            variant="body2"
+            style={{
+              fontSize: "0.75rem",
+              opacity: 0.9,
+              marginTop: "2px",
+            }}
+          >
+            {currentTime}
+          </Typography>
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <IconButton color="inherit" onClick={handleOpenChatList}>
             <Badge
@@ -365,6 +481,8 @@ const Header = ({ drawerWidth }) => {
           </Menu>
         </div>
       </Toolbar>
+      
+      {/* Chat Box dialog */}
       <Dialog
         open={openChatList}
         onClose={() => setOpenChatList(false)}
@@ -405,7 +523,140 @@ const Header = ({ drawerWidth }) => {
           )}
         </DialogContent>
       </Dialog>
-      <Dialog
+
+      {/* Chat Box Sidebar bên phải */}
+      {openChatBox && (
+        <Paper
+          sx={{
+            position: "fixed",
+            right: 0,
+            bottom: 0,
+            width: 380,
+            maxWidth: "calc(100% - " + drawerWidth + "px)",
+            height: minimizeChatBox ? 50 : 500,
+            borderRadius: "8px 8px 0 0",
+            boxShadow: "-2px -2px 10px rgba(0,0,0,0.2)",
+            display: "flex",
+            flexDirection: "column",
+            zIndex: 1200,
+            backgroundColor: "#fff",
+            transition: "height 0.3s ease",
+          }}
+        >
+          {/* Header */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              p: 2,
+              backgroundColor: "#2563EB",
+              color: "#fff",
+              borderRadius: "8px 8px 0 0",
+              cursor: minimizeChatBox ? "pointer" : "default",
+            }}
+            onClick={() => minimizeChatBox && setMinimizeChatBox(false)}
+          >
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>
+              {selectedUser}
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <IconButton
+                size="small"
+                sx={{ color: "#fff" }}
+                onClick={() => setMinimizeChatBox(!minimizeChatBox)}
+                title={minimizeChatBox ? "Phóng to" : "Thu nhỏ"}
+              >
+                <MinimizeIcon />
+              </IconButton>
+              <IconButton
+                size="small"
+                sx={{ color: "#fff" }}
+                onClick={() => setOpenChatBox(false)}
+                title="Đóng"
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </Box>
+
+          {!minimizeChatBox && (
+            <>
+              <Divider />
+              {/* Chat Messages */}
+              <Box
+                sx={{
+                  flex: 1,
+                  overflowY: "auto",
+                  p: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1,
+                }}
+              >
+                {chatWithUser.map((msg, i) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      display: "flex",
+                      justifyContent:
+                        msg.sender === "Admin" ? "flex-end" : "flex-start",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        backgroundColor:
+                          msg.sender === "Admin" ? "#bbdefb" : "#f1f1f1",
+                        borderRadius: 2,
+                        px: 2,
+                        py: 1,
+                        maxWidth: "80%",
+                        wordWrap: "break-word",
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "#666", display: "block" }}
+                      >
+                        <b>{msg.sender}:</b>
+                      </Typography>
+                      <Typography variant="body2">{msg.content}</Typography>
+                    </Box>
+                  </Box>
+                ))}
+                <div ref={chatEndRef} />
+              </Box>
+
+              <Divider />
+              {/* Input */}
+              <Box sx={{ p: 2, display: "flex", gap: 1 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Nhập tin nhắn..."
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSendReply()}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    },
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleSendReply}
+                  sx={{ borderRadius: 2 }}
+                >
+                  Gửi
+                </Button>
+              </Box>
+            </>
+          )}
+        </Paper>
+      )}
+
+      {/* <Dialog
         open={openChatBox}
         onClose={() => setOpenChatBox(false)}
         fullWidth
@@ -464,8 +715,9 @@ const Header = ({ drawerWidth }) => {
             </Button>
           </Box>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
 
+      {/* Dialog đổi mật khẩu */}
       <Dialog
         open={openChangePassword}
         onClose={() => setOpenChangePassword(false)}
@@ -480,7 +732,7 @@ const Header = ({ drawerWidth }) => {
             color: "#fff",
           }}
         >
-          🔒 ĐỔI MẬT KHẨU
+          ĐỔI MẬT KHẨU
         </DialogTitle>
 
         <DialogContent>
@@ -510,16 +762,16 @@ const Header = ({ drawerWidth }) => {
               size="small"
             />
 
-            {message && (
+            {messageChangePassword && (
               <Typography
                 variant="body2"
                 sx={{
                   textAlign: "center",
-                  color: isSuccess ? "green" : "error.main",
+                  color: isSuccessChangePassword ? "green" : "error.main",
                   mt: 1,
                 }}
               >
-                {message}
+                {messageChangePassword}
               </Typography>
             )}
 
@@ -551,6 +803,7 @@ const Header = ({ drawerWidth }) => {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog chỉnh sửa profile */}
       <Dialog
         open={openEditProfile}
         onClose={() => setOpenEditProfile(false)}
@@ -565,7 +818,7 @@ const Header = ({ drawerWidth }) => {
             color: "#fff",
           }}
         >
-          ✏️ CHỈNH SỬA THÔNG TIN
+          CHỈNH SỬA THÔNG TIN
         </DialogTitle>
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
@@ -646,16 +899,16 @@ const Header = ({ drawerWidth }) => {
               </Button>
             </Box>
 
-            {message && (
+            {messageEditProfile && (
               <Typography
                 variant="body2"
                 sx={{
                   textAlign: "center",
-                  color: isSuccess ? "green" : "error.main",
+                  color: isSuccessEditProfile ? "green" : "error.main",
                   mt: 1,
                 }}
               >
-                {message}
+                {messageEditProfile}
               </Typography>
             )}
 

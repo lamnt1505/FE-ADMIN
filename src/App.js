@@ -25,9 +25,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Mặc định "/" => /login */}
         <Route path="/" element={<Navigate to="/login" />} />
-        {/* Trang login KHÔNG có layout */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/404" element={<NotFound />} />
         <Route element={<ProtectedRoute />}>
@@ -36,10 +34,8 @@ function App() {
             <Route path="/discountslist" element={<DiscountList />} />
             <Route path="/products" element={<Products />} />
             <Route path="/add-product" element={<AddProduct />} />
-
             <Route path="/product-versions" element={<ProductVersionList />} />
             <Route path="/product-details" element={<ProductDetailList />} />
-            
             <Route path="/categories" element={<Categories />} />
             <Route path="/trademarks" element={<Trademarks />} />
             <Route path="/statisticals" element={<Statisticals />} />
